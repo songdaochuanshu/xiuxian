@@ -43,4 +43,13 @@ export const adminApi = {
   // 玩家
   getPlayers: (page = 1, limit = 20) =>
     request(`/admin/players?page=${page}&limit=${limit}`),
+
+  // 配置
+  getConfig: () => request('/admin/config'),
+
+  saveConfig: (config) =>
+    request('/admin/config', {
+      method: 'POST',
+      body: JSON.stringify(config),
+    }),
 }

@@ -62,7 +62,7 @@
             <td colspan="6" style="text-align:center">暂无数据</td>
           </tr>
           <tr v-for="c in codes" :key="c.code">
-            <td class="code-text">{{ c.code }}</td>
+            <td class="code-text" @click="copyCode(c.code)" title="点击复制">{{ c.code }}</td>
             <td>{{ c.multiplier }}x</td>
             <td>{{ c.duration === 0 ? '永久' : c.duration/3600+'小时' }}</td>
             <td>
@@ -151,6 +151,12 @@ function copyAll() {
     .catch(() => alert('复制失败'))
 }
 
+function copyCode(code) {
+  navigator.clipboard.writeText(code)
+    .then(() => alert(`已复制: ${code}`))
+    .catch(() => alert('复制失败'))
+}
+
 function formatTime(ts) {
   return new Date(ts).toLocaleString('zh-CN')
 }
@@ -233,7 +239,14 @@ th {
 }
 td { padding: 8px 12px; border-top: 1px solid var(--border); }
 tr:hover td { background: rgba(255,255,255,0.02); }
-.code-text { font-family: monospace; }
+.code-text {
+  font-family: monospace;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.code-text:hover {
+  color: var(--gold);
+}
 
 .badge { padding: 2px 8px; border-radius: 4px; font-size: 11px; }
 .badge-success { background: rgba(64,192,128,0.15); color: var(--success); }
