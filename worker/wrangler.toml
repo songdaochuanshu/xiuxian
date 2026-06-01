@@ -1,0 +1,9 @@
+name = "xiuxian-api"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+# D1 数据库绑定
+[[d1_databases]]
+binding = "DB"
+database_name = "xiuxian-codes"
+database_id = "YOUR_D1_DATABASE_ID"  # 创建 D1 后填入

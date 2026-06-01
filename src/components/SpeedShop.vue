@@ -133,14 +133,14 @@ function selectItem(item) {
   showPay.value = true
 }
 
-function handleRedeem() {
+async function handleRedeem() {
   const code = redeemCode.value.trim()
   if (!code) {
     game.addLog('请输入兑换码', 'battle')
     return
   }
 
-  const result = player.redeemSpeed(code)
+  const result = await player.redeemSpeed(code)
   if (result.success) {
     game.addLog(`🎉 兑换成功！${result.multiplier}倍速已激活`, 'success')
     if (result.duration > 0) {
