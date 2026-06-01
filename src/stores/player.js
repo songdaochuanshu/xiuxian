@@ -207,56 +207,43 @@ export const usePlayerStore = defineStore('player', () => {
 
   // 加速功能 - 支持短码格式: AP-XXXXXXXX
   // A=2x B=5x C=10x | P=永久 T=限时
-  function redeemSpeed(code) {
+  async function redeemSpeed(code) {
     try {
       // 标准化输入：去除空格，转大写
       code = code.trim().toUpperCase().replace(/\s/g, '')
 
-      let multiplier, duration
-
-      // 解析短码格式: XP-XXXXXXXX
+      // 格式校验
       const shortMatch = code.match(/^([ABC])([PT])-([A-Z2-9]{8})$/)
-      if (shortMatch) {
-        const multMap = { A: 2, B: 5, C: 10 }
-        multiplier = multMap[shortMatch[1]]
-        duration = shortMatch[2] === 'P' ? 0 : 3600
-      }
-      // 兼容旧的base64格式
-      else if (code.startsWith('eyJ')) {
-        const decoded = atob(code)
-        const data = JSON.parse(decoded)
-        multiplier = data.multiplier
-        duration = data.duration
-      }
-      else {
+      if (!shortMatch) {
         return { success: false, error: '兑换码格式错误' }
       }
 
-      if (!multiplier) {
-        return { success: false, error: '兑换码格式错误' }
-      }
+      // 调用 Worker API 验证
+      const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxian-api.你的子域名.workers.dev'
+      const res = await fetch(`${API_URL}/redeem`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      })
 
-      // 验证是否已使用
-      const usedCodes = JSON.parse(localStorage.getItem('used_codes') || '[]')
-      if (usedCodes.includes(code)) {
-        return { success: false, error: '兑换码已使用' }
+      const data = await res.json()
+
+      if (!data.success) {
+        return { success: false, error: data.error }
       }
 
       // 激活加速
-      speedMultiplier.value = multiplier
-      if (duration === 0) {
+      speedMultiplier.value = data.multiplier
+      if (data.duration === 0) {
         speedExpireTime.value = -1
       } else {
-        speedExpireTime.value = duration
+        speedExpireTime.value = data.duration
       }
 
-      // 记录已使用
-      usedCodes.push(code)
-      localStorage.setItem('used_codes', JSON.stringify(usedCodes))
-
-      return { success: true, multiplier, duration }
+      return { success: true, multiplier: data.multiplier, duration: data.duration }
     } catch (e) {
-      return { success: false, error: '无效的兑换码' }
+      console.error('兑换失败:', e)
+      return { success: false, error: '网络错误，请稍后再试' }
     }
   }
 

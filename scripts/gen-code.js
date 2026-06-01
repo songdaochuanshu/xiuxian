@@ -25,11 +25,11 @@ if (!multiplier || duration === undefined) {
 
 // 生成短码：倍数标识 + 时长标识 + 随机字符
 function generateCode(multiplier, duration) {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // 去掉容易混淆的字符: I/O/0/1
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // 去掉容易混淆的字符
   
   // 前缀：倍数+时长类型
-  const multTag = multiplier === 2 ? 'A' : multiplier === 5 ? 'B' : 'C' // A=2x B=5x C=10x
-  const durTag = duration === 0 ? 'P' : 'T' // P=永久 T=限时
+  const multTag = multiplier === 2 ? 'A' : multiplier === 5 ? 'B' : 'C'
+  const durTag = duration === 0 ? 'P' : 'T'
   
   // 生成8位随机字符
   let random = ''
@@ -37,7 +37,6 @@ function generateCode(multiplier, duration) {
     random += chars[Math.floor(Math.random() * chars.length)]
   }
   
-  // 格式: XP-XXXXXXXX (共12字符，含分隔符方便阅读)
   return `${multTag}${durTag}-${random}`
 }
 
@@ -56,6 +55,13 @@ for (let i = 0; i < count; i++) {
 
 console.log(`\n⚠️ 兑换码24小时内有效，使用后失效`)
 
-// 同时输出JSON格式方便导入
-console.log(`\n--- JSON格式（方便批量导入）---`)
+// 输出 SQL 插入语句（用于导入 D1）
+console.log(`\n--- SQL 导入语句 ---`)
+const now = Date.now()
+const expireAt = duration === 0 ? null : now + 24 * 60 * 60 * 1000
+for (const code of codes) {
+  console.log(`INSERT INTO codes (code, multiplier, duration, expire_at, created_at) VALUES ('${code}', ${multiplier}, ${duration}, ${expireAt}, ${now});`)
+}
+
+console.log(`\n--- JSON 格式 ---`)
 console.log(JSON.stringify(codes))
