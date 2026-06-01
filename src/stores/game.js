@@ -35,4 +35,8 @@ export const useGameStore = defineStore('game', () => {
     cultivating, logs, showBreakthrough, breakthroughInfo, tickCount,
     addLog, clearLog, toggleCultivate, triggerBreakthrough,
   }
+}, {
+  persist: {
+    pick: ['tickCount', 'logs'],
+  },
 })

@@ -205,4 +205,6 @@ export const usePlayerStore = defineStore('player', () => {
     realm, realmName, maxExp, cultivateSpeed, expPercent, hpPercent, mpPercent, canBreakthrough, isMaxRealm,
     cultivate, ageUp, breakthrough, rest, takeDamage, heal, useMp, addItem, removeItem, useItem, revive, reset,
   }
+}, {
+  persist: true,
 })
