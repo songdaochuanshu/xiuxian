@@ -15,6 +15,9 @@
     <!-- 操作 -->
     <ActionPanel />
 
+    <!-- 加速商店 -->
+    <SpeedShop />
+
     <!-- 背包 -->
     <ItemBag />
 
@@ -44,6 +47,7 @@ import BattlePanel from './components/BattlePanel.vue'
 import BreakthroughOverlay from './components/BreakthroughOverlay.vue'
 import Leaderboard from './components/Leaderboard.vue'
 import PixelCharacter from './components/PixelCharacter.vue'
+import SpeedShop from './components/SpeedShop.vue'
 
 const player = usePlayerStore()
 const game = useGameStore()
@@ -58,6 +62,9 @@ function startTick() {
       if (result?.type === 'event') {
         game.addLog(result.text, 'success')
       }
+
+      // 加速倒计时
+      player.tickSpeed()
 
       // 年龄
       game.tickCount++
