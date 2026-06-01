@@ -20,14 +20,23 @@
     <!-- 操作按钮 -->
     <ActionPanel />
 
+    <!-- 每日签到 -->
+    <DailyCheckIn />
+
     <!-- 坊市 -->
     <Shop />
 
     <!-- 加速商店 -->
     <SpeedShop />
 
+    <!-- 成就 -->
+    <Achievements ref="achievementsRef" />
+
     <!-- 背包 -->
     <ItemBag />
+
+    <!-- 设置 -->
+    <Settings />
   </div>
 
   <!-- 浮动日志 -->
@@ -65,12 +74,16 @@ import SpeedShop from './components/SpeedShop.vue'
 import Shop from './components/Shop.vue'
 import Announcement from './components/Announcement.vue'
 import UserProfile from './components/UserProfile.vue'
+import Achievements from './components/Achievements.vue'
+import DailyCheckIn from './components/DailyCheckIn.vue'
+import Settings from './components/Settings.vue'
 
 const player = usePlayerStore()
 const game = useGameStore()
 
 const logExpanded = ref(false)
 const logBody = ref(null)
+const achievementsRef = ref(null)
 
 // 只显示最近的日志
 const recentLogs = computed(() => {
@@ -130,6 +143,14 @@ function startTick() {
         }
         if (ageResult.warning) {
           game.addLog(`⚠️ 寿元将尽！剩余${ageResult.remaining}年`, 'battle')
+        }
+      }
+
+      // 检查成就
+      if (game.tickCount % 5 === 0 && achievementsRef.value) {
+        const newAch = achievementsRef.value.checkAchievements()
+        if (newAch) {
+          game.addLog(`🎖️ 成就解锁！${newAch.icon} ${newAch.name}`, 'breakthrough')
         }
       }
 
