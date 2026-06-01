@@ -205,22 +205,35 @@ export const usePlayerStore = defineStore('player', () => {
     speedExpireTime.value = 0
   }
 
-  // 加速功能
+  // 加速功能 - 支持短码格式: AP-XXXXXXXX
+  // A=2x B=5x C=10x | P=永久 T=限时
   function redeemSpeed(code) {
     try {
-      // 解析兑换码：格式为 base64(JSON)
-      const decoded = atob(code)
-      const data = JSON.parse(decoded)
+      // 标准化输入：去除空格，转大写
+      code = code.trim().toUpperCase().replace(/\s/g, '')
 
-      // 验证格式
-      if (!data.multiplier || !data.duration === undefined) {
+      let multiplier, duration
+
+      // 解析短码格式: XP-XXXXXXXX
+      const shortMatch = code.match(/^([ABC])([PT])-([A-Z2-9]{8})$/)
+      if (shortMatch) {
+        const multMap = { A: 2, B: 5, C: 10 }
+        multiplier = multMap[shortMatch[1]]
+        duration = shortMatch[2] === 'P' ? 0 : 3600
+      }
+      // 兼容旧的base64格式
+      else if (code.startsWith('eyJ')) {
+        const decoded = atob(code)
+        const data = JSON.parse(decoded)
+        multiplier = data.multiplier
+        duration = data.duration
+      }
+      else {
         return { success: false, error: '兑换码格式错误' }
       }
 
-      // 验证有效期（兑换码生成后24小时内有效）
-      const now = Date.now()
-      if (data.expire && now > data.expire) {
-        return { success: false, error: '兑换码已过期' }
+      if (!multiplier) {
+        return { success: false, error: '兑换码格式错误' }
       }
 
       // 验证是否已使用
@@ -230,19 +243,18 @@ export const usePlayerStore = defineStore('player', () => {
       }
 
       // 激活加速
-      speedMultiplier.value = data.multiplier
-      if (data.duration === 0) {
-        // 永久
+      speedMultiplier.value = multiplier
+      if (duration === 0) {
         speedExpireTime.value = -1
       } else {
-        speedExpireTime.value = data.duration
+        speedExpireTime.value = duration
       }
 
       // 记录已使用
       usedCodes.push(code)
       localStorage.setItem('used_codes', JSON.stringify(usedCodes))
 
-      return { success: true, multiplier: data.multiplier, duration: data.duration }
+      return { success: true, multiplier, duration }
     } catch (e) {
       return { success: false, error: '无效的兑换码' }
     }
