@@ -6,6 +6,9 @@
       <div class="sub">逆天改命 · 证道长生</div>
     </div>
 
+    <!-- 公告 -->
+    <Announcement />
+
     <!-- 角色信息 -->
     <PlayerInfo />
 
@@ -14,6 +17,9 @@
 
     <!-- 操作 -->
     <ActionPanel />
+
+    <!-- 修仙商店 -->
+    <Shop />
 
     <!-- 加速商店 -->
     <SpeedShop />
@@ -52,11 +58,38 @@ import Leaderboard from './components/Leaderboard.vue'
 import PixelCharacter from './components/PixelCharacter.vue'
 import SpeedShop from './components/SpeedShop.vue'
 import UserProfile from './components/UserProfile.vue'
+import Announcement from './components/Announcement.vue'
+import Shop from './components/Shop.vue'
 
 const player = usePlayerStore()
 const game = useGameStore()
 
 let tickTimer = null
+let syncTimer = null
+
+const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxian-api.你的子域名.workers.dev'
+
+async function syncPlayer() {
+  if (!player.uid) return
+  try {
+    await fetch(`${API_URL}/player/sync`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        uid: player.uid,
+        name: player.name,
+        realm: player.realmName,
+        realmIndex: player.realmIndex,
+        age: player.age,
+        gold: player.gold,
+        speedMultiplier: player.speedMultiplier,
+        speedExpireTime: player.speedExpireTime,
+      }),
+    })
+  } catch (e) {
+    // 静默失败
+  }
+}
 
 function startTick() {
   tickTimer = setInterval(() => {
@@ -93,6 +126,17 @@ function startTick() {
       // 修为满提示
       if (player.canBreakthrough && game.tickCount % 10 === 0) {
         game.addLog('修为已满！可以尝试突破境界了。', 'breakthrough')
+
+        // 自动突破
+        if (player.autoBreak && !player.isMaxRealm) {
+          const result = player.breakthrough()
+          if (result.success) {
+            game.addLog(`✨ 自动突破成功！${result.realmName}`, 'breakthrough')
+            game.triggerBreakthrough({ realmName: result.realmName, lifespanGain: result.lifespanGain })
+          } else if (!result.needItem) {
+            game.addLog(`自动突破失败，损失 ${result.lostExp} 修为`, 'battle')
+          }
+        }
       }
     }
   }, 1000)
@@ -103,9 +147,14 @@ onMounted(() => {
   game.addLog('从此踏上了漫漫修仙之路。', 'system')
   game.addLog('提示：点击"开始修炼"积累修为，修为满后点击"突破境界"。', 'info')
   startTick()
+
+  // 每60秒同步一次玩家数据
+  syncPlayer()
+  syncTimer = setInterval(syncPlayer, 60000)
 })
 
 onUnmounted(() => {
   if (tickTimer) clearInterval(tickTimer)
+  if (syncTimer) clearInterval(syncTimer)
 })
 </script>

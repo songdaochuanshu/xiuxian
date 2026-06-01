@@ -52,4 +52,19 @@ export const adminApi = {
       method: 'POST',
       body: JSON.stringify(config),
     }),
+
+  // 商店
+  getShopItems: () => request('/admin/shop'),
+
+  addShopItem: (item) =>
+    request('/admin/shop', {
+      method: 'POST',
+      body: JSON.stringify(item),
+    }),
+
+  deleteShopItem: (id) =>
+    request('/admin/shop', {
+      method: 'DELETE',
+      body: JSON.stringify({ id }),
+    }),
 }
