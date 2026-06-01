@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * 兑换码生成器
+ * 兑换码生成器 - 短码版
  * 用法: node scripts/gen-code.js <倍数> <时长秒数> [数量]
  *
  * 示例:
@@ -23,16 +23,22 @@ if (!multiplier || duration === undefined) {
   process.exit(1)
 }
 
+// 生成短码：倍数标识 + 时长标识 + 随机字符
 function generateCode(multiplier, duration) {
-  const data = {
-    multiplier,
-    duration,
-    // 24小时后兑换码过期
-    expire: Date.now() + 24 * 60 * 60 * 1000,
-    // 随机ID防重复
-    id: Math.random().toString(36).substring(2, 10),
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789' // 去掉容易混淆的字符: I/O/0/1
+  
+  // 前缀：倍数+时长类型
+  const multTag = multiplier === 2 ? 'A' : multiplier === 5 ? 'B' : 'C' // A=2x B=5x C=10x
+  const durTag = duration === 0 ? 'P' : 'T' // P=永久 T=限时
+  
+  // 生成8位随机字符
+  let random = ''
+  for (let i = 0; i < 8; i++) {
+    random += chars[Math.floor(Math.random() * chars.length)]
   }
-  return Buffer.from(JSON.stringify(data)).toString('base64')
+  
+  // 格式: XP-XXXXXXXX (共12字符，含分隔符方便阅读)
+  return `${multTag}${durTag}-${random}`
 }
 
 console.log(`\n=== 修仙加速器兑换码 ===`)
@@ -41,9 +47,15 @@ console.log(`时长: ${duration === 0 ? '永久' : duration / 3600 + '小时'}`)
 console.log(`数量: ${count}`)
 console.log(`========================\n`)
 
+const codes = []
 for (let i = 0; i < count; i++) {
   const code = generateCode(multiplier, duration)
+  codes.push(code)
   console.log(`${i + 1}. ${code}`)
 }
 
 console.log(`\n⚠️ 兑换码24小时内有效，使用后失效`)
+
+// 同时输出JSON格式方便导入
+console.log(`\n--- JSON格式（方便批量导入）---`)
+console.log(JSON.stringify(codes))
