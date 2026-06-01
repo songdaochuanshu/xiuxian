@@ -15,6 +15,7 @@ export const usePlayerStore = defineStore('player', () => {
   const atk = ref(10)
   const def = ref(5)
   const gold = ref(0)
+  const spiritStones = ref(0)
   const age = ref(16)
   const lifespan = ref(80)
   const items = ref({ '疗伤丹': 3, '聚灵丹': 2 })
@@ -260,7 +261,7 @@ export const usePlayerStore = defineStore('player', () => {
   }
 
   return {
-    uid, name, realmIndex, hp, maxHp, mp, maxMp, exp, atk, def, gold, age, lifespan, items, isDead, autoBreak,
+    uid, name, realmIndex, hp, maxHp, mp, maxMp, exp, atk, def, gold, spiritStones, age, lifespan, items, isDead, autoBreak,
     realm, realmName, maxExp, cultivateSpeed, expPercent, hpPercent, mpPercent, canBreakthrough, isMaxRealm,
     cultivate, ageUp, breakthrough, rest, takeDamage, heal, useMp, addItem, removeItem, useItem, revive, reset,
     redeemSpeed, tickSpeed, speedMultiplier, speedExpireTime,
