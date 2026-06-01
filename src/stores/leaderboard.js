@@ -8,11 +8,16 @@ export const useLeaderboardStore = defineStore('leaderboard', () => {
   const submitting = ref(false)
   const lastResult = ref(null)
   const visible = ref(false)
+  const error = ref(null)
 
   async function load() {
     loading.value = true
+    error.value = null
     try {
       entries.value = await fetchLeaderboard()
+    } catch (err) {
+      error.value = err.message
+      console.error('加载排行榜失败:', err)
     } finally {
       loading.value = false
     }
@@ -20,12 +25,21 @@ export const useLeaderboardStore = defineStore('leaderboard', () => {
 
   async function submit(playerData) {
     submitting.value = true
+    error.value = null
     try {
       const result = await submitScore(playerData)
       lastResult.value = result
-      // 提交后刷新列表
-      await load()
+
+      if (result.success) {
+        // 提交成功后刷新列表
+        await load()
+      }
+
       return result
+    } catch (err) {
+      error.value = err.message
+      console.error('提交分数失败:', err)
+      return { success: false, error: err.message }
     } finally {
       submitting.value = false
     }
@@ -41,7 +55,7 @@ export const useLeaderboardStore = defineStore('leaderboard', () => {
   }
 
   return {
-    entries, loading, submitting, lastResult, visible,
+    entries, loading, submitting, lastResult, visible, error,
     load, submit, show, hide,
   }
 })
