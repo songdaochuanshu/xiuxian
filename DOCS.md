@@ -157,14 +157,19 @@
 | 商店商品 | Cloudflare D1（configs表） |
 | 排行榜 | GitHub Issues |
 
-### 3.4 API 接口
+### 3.4 API 接口 (Hono)
 
 #### 公开接口
 | 路径 | 方法 | 说明 |
 |------|------|------|
 | `/redeem` | POST | 验证兑换码 |
 | `/announcement` | GET | 获取公告 |
-| `/player/sync` | POST | 玩家数据同步 |
+| `/player/sync` | POST | 玩家数据同步 + 离线挂机结算 |
+| `/player/heartbeat` | POST | 心跳（更新离线时间戳） |
+| `/api/battle/settle` | POST | 战斗结算 + 掉落系统 |
+| `/api/shop/buy` | POST | 坊市购买 |
+| `/api/lifespan/check` | POST | 寿元检查 + 转世系统 |
+| `/shop/config` | GET | 获取坊市配置 |
 | `/health` | GET | 健康检查 |
 
 #### 管理接口（需要密码）
@@ -175,12 +180,11 @@
 | `/admin/codes` | POST | 生成兑换码 |
 | `/admin/codes` | DELETE | 删除兑换码 |
 | `/admin/players` | GET | 玩家列表 |
-| `/admin/orders` | GET | 订单列表 |
+| `/admin/monsters` | GET | 怪物列表 |
+| `/admin/drops` | GET | 掉落配置 |
 | `/admin/config` | GET | 获取配置 |
 | `/admin/config` | POST | 保存配置 |
-| `/admin/shop` | GET | 商店商品列表 |
-| `/admin/shop` | POST | 添加商品 |
-| `/admin/shop` | DELETE | 删除商品 |
+| `/admin/reincarnations` | GET | 转世记录 |
 
 ### 3.5 数据库表结构
 
@@ -198,7 +202,7 @@ CREATE TABLE codes (
   created_at INTEGER NOT NULL
 );
 
--- 玩家表
+-- 玩家表（扩展版）
 CREATE TABLE players (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   uid TEXT UNIQUE NOT NULL,
@@ -207,23 +211,76 @@ CREATE TABLE players (
   realm_index INTEGER DEFAULT 0,
   age INTEGER DEFAULT 16,
   gold INTEGER DEFAULT 0,
+  spirit_stones INTEGER DEFAULT 0,
   speed_multiplier INTEGER DEFAULT 1,
   speed_expire_at INTEGER,
+  last_heartbeat_time INTEGER DEFAULT 0,
+  injury_status TEXT DEFAULT 'NORMAL',
+  exp INTEGER DEFAULT 0,
   created_at INTEGER NOT NULL,
   last_active INTEGER
 );
 
--- 订单表
-CREATE TABLE orders (
+-- 怪物表
+CREATE TABLE monsters (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  order_no TEXT UNIQUE NOT NULL,
-  player_name TEXT,
-  product TEXT NOT NULL,
-  amount REAL NOT NULL,
-  status TEXT DEFAULT 'pending',
-  code TEXT,
+  name TEXT NOT NULL,
+  zone TEXT NOT NULL,
+  hp INTEGER NOT NULL,
+  atk INTEGER NOT NULL,
+  def INTEGER NOT NULL,
+  exp_reward INTEGER NOT NULL,
+  stone_reward_min INTEGER DEFAULT 1,
+  stone_reward_max INTEGER DEFAULT 10
+);
+
+-- 物品表
+CREATE TABLE items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT UNIQUE NOT NULL,
+  icon TEXT DEFAULT '📦',
+  desc TEXT DEFAULT '',
+  type TEXT DEFAULT 'consumable'
+);
+
+-- 怪物掉落表
+CREATE TABLE monster_drops (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  monster_id INTEGER NOT NULL,
+  item_id INTEGER NOT NULL,
+  drop_chance REAL NOT NULL,
+  FOREIGN KEY (monster_id) REFERENCES monsters(id),
+  FOREIGN KEY (item_id) REFERENCES items(id)
+);
+
+-- 玩家背包表
+CREATE TABLE user_inventory (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_uid TEXT NOT NULL,
+  item_id INTEGER NOT NULL,
+  quantity INTEGER DEFAULT 1,
   created_at INTEGER NOT NULL,
-  paid_at INTEGER
+  UNIQUE(user_uid, item_id),
+  FOREIGN KEY (item_id) REFERENCES items(id)
+);
+
+-- 坊市商品表
+CREATE TABLE shop_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  item_id INTEGER NOT NULL,
+  price INTEGER NOT NULL,
+  stock_limit INTEGER DEFAULT -1,
+  FOREIGN KEY (item_id) REFERENCES items(id)
+);
+
+-- 转世记录表
+CREATE TABLE reincarnation_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_uid TEXT NOT NULL,
+  old_realm TEXT,
+  new_realm TEXT DEFAULT '炼气期一层',
+  bonus_speed REAL DEFAULT 0.1,
+  created_at INTEGER NOT NULL
 );
 
 -- 配置表
