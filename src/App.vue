@@ -23,6 +23,9 @@
 
     <!-- 突破动画 -->
     <BreakthroughOverlay />
+
+    <!-- 排行榜 -->
+    <Leaderboard />
   </div>
 </template>
 
@@ -36,6 +39,7 @@ import ItemBag from './components/ItemBag.vue'
 import GameLog from './components/GameLog.vue'
 import BattlePanel from './components/BattlePanel.vue'
 import BreakthroughOverlay from './components/BreakthroughOverlay.vue'
+import Leaderboard from './components/Leaderboard.vue'
 
 const player = usePlayerStore()
 const game = useGameStore()
