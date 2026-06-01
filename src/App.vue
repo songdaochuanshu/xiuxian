@@ -3,7 +3,7 @@
     <!-- 标题 -->
     <div class="title">
       <h1>凡人修仙传</h1>
-      <div class="sub">逆天改命 · 证道长生</div>
+      <div class="sub">逆 天 改 命 · 证 道 长 生</div>
     </div>
 
     <!-- 公告 -->

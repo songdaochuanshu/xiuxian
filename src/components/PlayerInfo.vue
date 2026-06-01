@@ -2,12 +2,15 @@
   <div class="panel">
     <div class="panel-header">
       <span>修仙者</span>
-      <span>年龄: {{ player.age }} / {{ player.lifespan }}</span>
+      <span>{{ player.age }} / {{ player.lifespan }} 岁</span>
     </div>
     <div class="panel-body">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-size:16px;color:var(--gold);font-weight:bold">{{ player.name }}</span>
-        <span style="color:var(--success);font-size:14px">{{ player.realmName }}</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div>
+          <span style="font-family:'Ma Shan Zheng',cursive;font-size:20px;color:var(--gold);letter-spacing:4px">{{ player.name }}</span>
+          <span v-if="player.uid" style="font-size:10px;color:var(--text-dim);margin-left:8px">{{ player.uid }}</span>
+        </div>
+        <span style="color:var(--success);font-size:14px;font-family:'ZCOOL XiaoWei',serif;letter-spacing:2px">{{ player.realmName }}</span>
       </div>
 
       <div class="bar-row">
@@ -32,8 +35,8 @@
         </div>
       </div>
 
-      <div style="font-size:11px;color:var(--text-dim);text-align:center;margin-top:4px">
-        修炼速度: {{ player.cultivateSpeed }} 灵气/秒 · 攻击: {{ player.atk }} · 防御: {{ player.def }}
+      <div style="font-size:11px;color:var(--text-dim);text-align:center;margin-top:8px;font-family:'ZCOOL XiaoWei',serif;letter-spacing:1px">
+        速 {{ player.cultivateSpeed }} · 攻 {{ player.atk }} · 防 {{ player.def }} · 💎 {{ player.spiritStones }} · 💰 {{ player.gold }}
       </div>
     </div>
   </div>

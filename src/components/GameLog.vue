@@ -7,7 +7,7 @@
     <div class="panel-body">
       <div class="log-area">
         <div v-for="log in game.logs" :key="log.id" class="log-entry">
-          <span class="log-time">[{{ log.time }}]</span>
+          <span class="log-time">{{ log.time }}</span>
           <span :class="'log-' + log.type">{{ log.text }}</span>
         </div>
       </div>
