@@ -19,6 +19,7 @@
         </button>
         <button class="btn btn-danger" @click="handleExplore">探索秘境</button>
         <button class="btn" @click="handleRest">打坐恢复</button>
+        <button class="btn btn-full" @click="lb.show()">🏆 天道排行榜</button>
       </div>
     </div>
   </div>
@@ -28,10 +29,12 @@
 import { usePlayerStore } from '../stores/player.js'
 import { useGameStore } from '../stores/game.js'
 import { useBattleStore } from '../stores/battle.js'
+import { useLeaderboardStore } from '../stores/leaderboard.js'
 
 const player = usePlayerStore()
 const game = useGameStore()
 const battle = useBattleStore()
+const lb = useLeaderboardStore()
 
 function handleCultivate() {
   const newState = game.toggleCultivate()
