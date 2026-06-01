@@ -9,6 +9,9 @@
     <!-- 角色信息 -->
     <PlayerInfo />
 
+    <!-- 像素小人 -->
+    <PixelCharacter />
+
     <!-- 操作 -->
     <ActionPanel />
 
@@ -40,6 +43,7 @@ import GameLog from './components/GameLog.vue'
 import BattlePanel from './components/BattlePanel.vue'
 import BreakthroughOverlay from './components/BreakthroughOverlay.vue'
 import Leaderboard from './components/Leaderboard.vue'
+import PixelCharacter from './components/PixelCharacter.vue'
 
 const player = usePlayerStore()
 const game = useGameStore()
