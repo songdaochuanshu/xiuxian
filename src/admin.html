@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>修仙管理后台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #0a0a0f;
+      --panel: #12121a;
+      --border: #2a2a3a;
+      --gold: #d4a853;
+      --text: #c8c0b0;
+      --text-dim: #6a6258;
+      --success: #40c080;
+      --danger: #e04040;
+    }
+    body { background: var(--bg); color: var(--text); font-family: system-ui, sans-serif; min-height: 100vh; }
+
+    /* 登录 */
+    .login { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .login-box { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 30px; width: 320px; text-align: center; }
+    .login-box h2 { color: var(--gold); margin-bottom: 20px; }
+    .login-box input { width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 14px; margin-bottom: 12px; }
+    .login-box button { width: 100%; padding: 10px; background: var(--gold); color: #000; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; font-weight: bold; }
+
+    /* 主布局 */
+    .app { display: none; }
+    .app.active { display: flex; min-height: 100vh; }
+    .sidebar { width: 200px; background: var(--panel); border-right: 1px solid var(--border); padding: 16px 0; }
+    .sidebar h2 { color: var(--gold); text-align: center; padding: 0 16px 16px; font-size: 16px; border-bottom: 1px solid var(--border); }
+    .nav-item { padding: 10px 16px; cursor: pointer; font-size: 13px; transition: background 0.2s; }
+    .nav-item:hover, .nav-item.active { background: rgba(212,168,83,0.1); color: var(--gold); }
+    .main { flex: 1; padding: 20px; overflow-y: auto; }
+
+    /* 通用 */
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .header h1 { font-size: 20px; color: var(--gold); }
+    .btn { padding: 8px 16px; background: rgba(212,168,83,0.15); border: 1px solid var(--gold); border-radius: 6px; color: var(--gold); cursor: pointer; font-size: 13px; }
+    .btn:hover { background: rgba(212,168,83,0.25); }
+    .btn-danger { border-color: var(--danger); color: var(--danger); background: rgba(224,64,64,0.1); }
+    .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+    /* 统计卡片 */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .stat-card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; }
+    .stat-value { font-size: 28px; color: var(--gold); font-weight: bold; }
+    .stat-label { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+
+    /* 表格 */
+    .table-wrap { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: rgba(212,168,83,0.1); color: var(--gold); text-align: left; padding: 10px 12px; font-size: 12px; }
+    td { padding: 8px 12px; border-top: 1px solid var(--border); }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .badge { padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+    .badge-success { background: rgba(64,192,128,0.15); color: var(--success); }
+    .badge-danger { background: rgba(224,64,64,0.15); color: var(--danger); }
+
+    /* 生成表单 */
+    .form { display: flex; gap: 10px; align-items: end; margin-bottom: 16px; flex-wrap: wrap; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group label { font-size: 12px; color: var(--text-dim); }
+    .form-group select, .form-group input { padding: 8px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 13px; }
+
+    .codes-result { margin-top: 12px; padding: 12px; background: rgba(64,192,128,0.1); border-radius: 6px; font-family: monospace; font-size: 12px; line-height: 1.8; max-height: 200px; overflow-y: auto; }
+
+    /* 分页 */
+    .pagination { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
+
+    @media (max-width: 768px) {
+      .sidebar { width: 60px; }
+      .sidebar h2 { font-size: 12px; }
+      .nav-item { font-size: 16px; text-align: center; padding: 10px 4px; }
+      .main { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- 登录页 -->
+<div class="login" id="login">
+  <div class="login-box">
+    <h2>🔐 管理后台</h2>
+    <input type="password" id="password" placeholder="请输入管理密码" />
+    <button onclick="doLogin()">登录</button>
+  </div>
+</div>
+
+<!-- 主应用 -->
+<div class="app" id="app">
+  <div class="sidebar">
+    <h2>⚙️ 管理后台</h2>
+    <div class="nav-item active" onclick="showPage('dashboard')">📊 仪表盘</div>
+    <div class="nav-item" onclick="showPage('codes')">🎫 兑换码</div>
+    <div class="nav-item" onclick="showPage('players')">👥 玩家</div>
+    <div class="nav-item" onclick="showPage('orders')">📋 订单</div>
+  </div>
+  <div class="main" id="main"></div>
+</div>
+
+<script>
+const API = 'https://xiuxian-api.你的子域名.workers.dev'
+let token = ''
+
+function doLogin() {
+  token = document.getElementById('password').value
+  if (!token) return
+  document.getElementById('login').style.display = 'none'
+  document.getElementById('app').classList.add('active')
+  showPage('dashboard')
+}
+
+async function api(path, options = {}) {
+  const res = await fetch(`${API}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+      ...options.headers,
+    },
+  })
+  return res.json()
+}
+
+function showPage(page) {
+  document.querySelectorAll('.nav-item').forEach((el, i) => {
+    el.classList.toggle('active', ['dashboard','codes','players','orders'][i] === page)
+  })
+  if (page === 'dashboard') renderDashboard()
+  if (page === 'codes') renderCodes()
+  if (page === 'players') renderPlayers()
+  if (page === 'orders') renderOrders()
+}
+
+// ==================== 仪表盘 ====================
+async function renderDashboard() {
+  const main = document.getElementById('main')
+  main.innerHTML = '<div class="header"><h1>📊 仪表盘</h1></div><p>加载中...</p>'
+  const stats = await api('/admin/stats')
+  main.innerHTML = `
+    <div class="header"><h1>📊 仪表盘</h1></div>
+    <div class="stats">
+      <div class="stat-card"><div class="stat-value">${stats.codes?.total || 0}</div><div class="stat-label">兑换码总数</div></div>
+      <div class="stat-card"><div class="stat-value">${stats.codes?.used || 0}</div><div class="stat-label">已使用</div></div>
+      <div class="stat-card"><div class="stat-value">${stats.codes?.unused || 0}</div><div class="stat-label">未使用</div></div>
+      <div class="stat-card"><div class="stat-value">${stats.players?.total || 0}</div><div class="stat-label">玩家数</div></div>
+      <div class="stat-card"><div class="stat-value">${stats.orders?.paid || 0}</div><div class="stat-label">已付款订单</div></div>
+    </div>
+  `
+}
+
+// ==================== 兑换码管理 ====================
+let codesPage = 1
+async function renderCodes() {
+  const main = document.getElementById('main')
+  main.innerHTML = '<div class="header"><h1>🎫 兑换码管理</h1></div><p>加载中...</p>'
+
+  const data = await api(`/admin/codes?page=${codesPage}&limit=20`)
+
+  let rows = ''
+  if (data.data) {
+    rows = data.data.map(c => `
+      <tr>
+        <td style="font-family:monospace">${c.code}</td>
+        <td>${c.multiplier}x</td>
+        <td>${c.duration === 0 ? '永久' : c.duration/3600+'小时'}</td>
+        <td><span class="badge ${c.used ? 'badge-danger' : 'badge-success'}">${c.used ? '已使用' : '未使用'}</span></td>
+        <td>${c.used_at ? new Date(c.used_at).toLocaleString('zh-CN') : '-'}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="deleteCode('${c.code}')">删除</button></td>
+      </tr>
+    `).join('')
+  }
+
+  main.innerHTML = `
+    <div class="header"><h1>🎫 兑换码管理</h1></div>
+    <div class="form">
+      <div class="form-group">
+        <label>倍速</label>
+        <select id="gen-mult"><option value="2">2x</option><option value="5">5x</option><option value="10">10x</option></select>
+      </div>
+      <div class="form-group">
+        <label>时长</label>
+        <select id="gen-dur"><option value="0">永久</option><option value="3600">1小时</option></select>
+      </div>
+      <div class="form-group">
+        <label>数量</label>
+        <input type="number" id="gen-count" value="10" min="1" max="100" style="width:80px" />
+      </div>
+      <button class="btn" onclick="generateCodes()">生成</button>
+    </div>
+    <div id="gen-result"></div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>兑换码</th><th>倍速</th><th>时长</th><th>状态</th><th>使用时间</th><th>操作</th></tr>
+        ${rows}
+      </table>
+    </div>
+    <div class="pagination">
+      <button class="btn btn-sm" onclick="codesPage=Math.max(1,codesPage-1);renderCodes()">上一页</button>
+      <span style="line-height:28px">第 ${data.page} 页 / 共 ${Math.ceil(data.total/20)} 页</span>
+      <button class="btn btn-sm" onclick="codesPage++;renderCodes()">下一页</button>
+    </div>
+  `
+}
+
+async function generateCodes() {
+  const multiplier = parseInt(document.getElementById('gen-mult').value)
+  const duration = parseInt(document.getElementById('gen-dur').value)
+  const count = parseInt(document.getElementById('gen-count').value)
+
+  const data = await api('/admin/codes', {
+    method: 'POST',
+    body: JSON.stringify({ multiplier, duration, count }),
+  })
+
+  if (data.success) {
+    document.getElementById('gen-result').innerHTML = `
+      <div class="codes-result">${data.codes.join('<br>')}</div>
+    `
+    renderCodes()
+  } else {
+    alert(data.error || '生成失败')
+  }
+}
+
+async function deleteCode(code) {
+  if (!confirm(`确定删除 ${code}？`)) return
+  await api('/admin/codes', { method: 'DELETE', body: JSON.stringify({ code }) })
+  renderCodes()
+}
+
+// ==================== 玩家管理 ====================
+let playersPage = 1
+async function renderPlayers() {
+  const main = document.getElementById('main')
+  main.innerHTML = '<div class="header"><h1>👥 玩家管理</h1></div><p>加载中...</p>'
+
+  const data = await api(`/admin/players?page=${playersPage}&limit=20`)
+
+  let rows = ''
+  if (data.data) {
+    rows = data.data.map(p => `
+      <tr>
+        <td>${p.name}</td>
+        <td>${p.realm || '-'}</td>
+        <td>${p.realm_index}</td>
+        <td>${p.age}</td>
+        <td>${p.gold}</td>
+        <td>${p.speed_multiplier > 1 ? p.speed_multiplier+'x' : '-'}</td>
+        <td>${p.last_active ? new Date(p.last_active).toLocaleString('zh-CN') : '-'}</td>
+      </tr>
+    `).join('')
+  }
+
+  main.innerHTML = `
+    <div class="header"><h1>👥 玩家管理</h1></div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>名字</th><th>境界</th><th>境界等级</th><th>年龄</th><th>灵石</th><th>加速</th><th>最后活跃</th></tr>
+        ${rows || '<tr><td colspan="7" style="text-align:center">暂无数据</td></tr>'}
+      </table>
+    </div>
+    <div class="pagination">
+      <button class="btn btn-sm" onclick="playersPage=Math.max(1,playersPage-1);renderPlayers()">上一页</button>
+      <span style="line-height:28px">第 ${data.page} 页</span>
+      <button class="btn btn-sm" onclick="playersPage++;renderPlayers()">下一页</button>
+    </div>
+  `
+}
+
+// ==================== 订单管理 ====================
+let ordersPage = 1
+async function renderOrders() {
+  const main = document.getElementById('main')
+  main.innerHTML = '<div class="header"><h1>📋 订单管理</h1></div><p>加载中...</p>'
+
+  const data = await api(`/admin/orders?page=${ordersPage}&limit=20`)
+
+  let rows = ''
+  if (data.data) {
+    rows = data.data.map(o => `
+      <tr>
+        <td style="font-family:monospace;font-size:11px">${o.order_no}</td>
+        <td>${o.player_name || '-'}</td>
+        <td>${o.product}</td>
+        <td>¥${o.amount}</td>
+        <td><span class="badge ${o.status === 'paid' ? 'badge-success' : 'badge-danger'}">${o.status}</span></td>
+        <td>${o.code || '-'}</td>
+        <td>${new Date(o.created_at).toLocaleString('zh-CN')}</td>
+      </tr>
+    `).join('')
+  }
+
+  main.innerHTML = `
+    <div class="header"><h1>📋 订单管理</h1></div>
+    <div class="table-wrap">
+      <table>
+        <tr><th>订单号</th><th>玩家</th><th>商品</th><th>金额</th><th>状态</th><th>兑换码</th><th>时间</th></tr>
+        ${rows || '<tr><td colspan="7" style="text-align:center">暂无数据</td></tr>'}
+      </table>
+    </div>
+    <div class="pagination">
+      <button class="btn btn-sm" onclick="ordersPage=Math.max(1,ordersPage-1);renderOrders()">上一页</button>
+      <span style="line-height:28px">第 ${data.page} 页</span>
+      <button class="btn btn-sm" onclick="ordersPage++;renderOrders()">下一页</button>
+    </div>
+  `
+}
+</script>
+</body>
+</html>
