@@ -4,6 +4,7 @@ import { REALMS } from '../data/realms.js'
 
 export const usePlayerStore = defineStore('player', () => {
   // 状态
+  const uid = ref('')
   const name = ref('无名散修')
   const realmIndex = ref(0)
   const hp = ref(100)
@@ -258,7 +259,7 @@ export const usePlayerStore = defineStore('player', () => {
   }
 
   return {
-    name, realmIndex, hp, maxHp, mp, maxMp, exp, atk, def, gold, age, lifespan, items, isDead,
+    uid, name, realmIndex, hp, maxHp, mp, maxMp, exp, atk, def, gold, age, lifespan, items, isDead,
     realm, realmName, maxExp, cultivateSpeed, expPercent, hpPercent, mpPercent, canBreakthrough, isMaxRealm,
     cultivate, ageUp, breakthrough, rest, takeDamage, heal, useMp, addItem, removeItem, useItem, revive, reset,
     redeemSpeed, tickSpeed, speedMultiplier, speedExpireTime,

@@ -32,6 +32,9 @@
 
     <!-- 排行榜 -->
     <Leaderboard />
+
+    <!-- 用户档案 -->
+    <UserProfile />
   </div>
 </template>
 
@@ -48,6 +51,7 @@ import BreakthroughOverlay from './components/BreakthroughOverlay.vue'
 import Leaderboard from './components/Leaderboard.vue'
 import PixelCharacter from './components/PixelCharacter.vue'
 import SpeedShop from './components/SpeedShop.vue'
+import UserProfile from './components/UserProfile.vue'
 
 const player = usePlayerStore()
 const game = useGameStore()

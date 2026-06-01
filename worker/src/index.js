@@ -62,6 +62,14 @@ export default {
         return await handleStats(request, env, corsHeaders)
       }
 
+      // 配置
+      if (path === '/admin/config' && request.method === 'GET') {
+        return await handleGetConfig(request, env, corsHeaders)
+      }
+      if (path === '/admin/config' && request.method === 'POST') {
+        return await handleSaveConfig(request, env, corsHeaders)
+      }
+
       return jsonResponse({ error: '接口不存在' }, 404, corsHeaders)
     }
 
@@ -241,6 +249,43 @@ async function handleStats(request, env, corsHeaders) {
     players: { total: totalPlayers.count },
     orders: { total: totalOrders.count, paid: paidOrders.count },
   }, 200, corsHeaders)
+}
+
+// 获取配置
+async function handleGetConfig(request, env, corsHeaders) {
+  try {
+    const rows = await env.DB.prepare('SELECT key, value FROM configs').all()
+    const config = {}
+    for (const row of rows.results) {
+      try {
+        config[row.key] = JSON.parse(row.value)
+      } catch {
+        config[row.key] = row.value
+      }
+    }
+    return jsonResponse(config, 200, corsHeaders)
+  } catch (err) {
+    return jsonResponse({}, 200, corsHeaders)
+  }
+}
+
+// 保存配置
+async function handleSaveConfig(request, env, corsHeaders) {
+  try {
+    const config = await request.json()
+    const now = Date.now()
+
+    for (const [key, value] of Object.entries(config)) {
+      const strValue = typeof value === 'object' ? JSON.stringify(value) : String(value)
+      await env.DB.prepare(
+        'INSERT OR REPLACE INTO configs (key, value, updated_at) VALUES (?, ?, ?)'
+      ).bind(key, strValue, now).run()
+    }
+
+    return jsonResponse({ success: true }, 200, corsHeaders)
+  } catch (err) {
+    return jsonResponse({ error: err.message }, 500, corsHeaders)
+  }
 }
 
 // ==================== 工具函数 ====================

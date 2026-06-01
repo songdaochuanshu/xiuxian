@@ -33,6 +33,8 @@
       <Dashboard v-if="currentPage === 'dashboard'" />
       <Codes v-if="currentPage === 'codes'" />
       <Players v-if="currentPage === 'players'" />
+      <Leaderboard v-if="currentPage === 'leaderboard'" />
+      <Config v-if="currentPage === 'config'" />
     </div>
   </div>
 </template>
@@ -42,6 +44,8 @@ import { ref } from 'vue'
 import Dashboard from './components/Dashboard.vue'
 import Codes from './components/Codes.vue'
 import Players from './components/Players.vue'
+import Leaderboard from './components/Leaderboard.vue'
+import Config from './components/Config.vue'
 
 const loggedIn = ref(false)
 const password = ref('')
@@ -52,6 +56,8 @@ const navItems = [
   { key: 'dashboard', icon: '📊', label: '仪表盘' },
   { key: 'codes', icon: '🎫', label: '兑换码' },
   { key: 'players', icon: '👥', label: '玩家' },
+  { key: 'leaderboard', icon: '🏆', label: '排行榜' },
+  { key: 'config', icon: '⚙️', label: '配置' },
 ]
 
 function doLogin() {
