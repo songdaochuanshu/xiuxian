@@ -9,7 +9,7 @@
 const CONFIG = {
   owner: 'songdaochuanshu',
   repo: 'xiuxian',
-  issueNumber: 1, // 排行榜 Issue 编号
+  issueNumber: 1, // 排行榜 Issue 编号 (已创建)
   // Token 建议用 GitHub Actions 的 GITHUB_TOKEN 或创建一个只有 public_repo 权限的 token
   // 这里为了简单直接写死，生产环境建议用环境变量
   token: 'ghp_XG…UbaW',
