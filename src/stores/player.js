@@ -19,6 +19,7 @@ export const usePlayerStore = defineStore('player', () => {
   const lifespan = ref(80)
   const items = ref({ '疗伤丹': 3, '聚灵丹': 2 })
   const isDead = ref(false)
+  const autoBreak = ref(false) // 自动突破
   // 加速状态
   const speedMultiplier = ref(1)
   const speedExpireTime = ref(0) // 0 = 无加速, -1 = 永久, >0 = 剩余秒数
@@ -259,7 +260,7 @@ export const usePlayerStore = defineStore('player', () => {
   }
 
   return {
-    uid, name, realmIndex, hp, maxHp, mp, maxMp, exp, atk, def, gold, age, lifespan, items, isDead,
+    uid, name, realmIndex, hp, maxHp, mp, maxMp, exp, atk, def, gold, age, lifespan, items, isDead, autoBreak,
     realm, realmName, maxExp, cultivateSpeed, expPercent, hpPercent, mpPercent, canBreakthrough, isMaxRealm,
     cultivate, ageUp, breakthrough, rest, takeDamage, heal, useMp, addItem, removeItem, useItem, revive, reset,
     redeemSpeed, tickSpeed, speedMultiplier, speedExpireTime,

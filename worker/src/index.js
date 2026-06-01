@@ -25,6 +25,12 @@ export default {
     if (path === '/redeem' && request.method === 'POST') {
       return await handleRedeem(request, env, corsHeaders)
     }
+    if (path === '/announcement') {
+      return await handleAnnouncement(request, env, corsHeaders)
+    }
+    if (path === '/player/sync' && request.method === 'POST') {
+      return await handlePlayerSync(request, env, corsHeaders)
+    }
     if (path === '/health') {
       return jsonResponse({ status: 'ok' }, 200, corsHeaders)
     }
@@ -68,6 +74,17 @@ export default {
       }
       if (path === '/admin/config' && request.method === 'POST') {
         return await handleSaveConfig(request, env, corsHeaders)
+      }
+
+      // 商店
+      if (path === '/admin/shop' && request.method === 'GET') {
+        return await handleGetShop(request, env, corsHeaders)
+      }
+      if (path === '/admin/shop' && request.method === 'POST') {
+        return await handleAddShopItem(request, env, corsHeaders)
+      }
+      if (path === '/admin/shop' && request.method === 'DELETE') {
+        return await handleDeleteShopItem(request, env, corsHeaders)
       }
 
       return jsonResponse({ error: '接口不存在' }, 404, corsHeaders)
@@ -116,6 +133,48 @@ async function handleRedeem(request, env, corsHeaders) {
 
   } catch (err) {
     return jsonResponse({ success: false, error: '服务器错误' }, 500, corsHeaders)
+  }
+}
+
+// 公告
+async function handleAnnouncement(request, env, corsHeaders) {
+  try {
+    const row = await env.DB.prepare("SELECT value FROM configs WHERE key = 'announcement'").first()
+    return jsonResponse({ text: row?.value || '' }, 200, corsHeaders)
+  } catch {
+    return jsonResponse({ text: '' }, 200, corsHeaders)
+  }
+}
+
+// 玩家数据同步
+async function handlePlayerSync(request, env, corsHeaders) {
+  try {
+    const data = await request.json()
+    const { uid, name, realm, realmIndex, age, gold, speedMultiplier, speedExpireTime } = data
+
+    if (!uid || !name) {
+      return jsonResponse({ error: '缺少必要参数' }, 400, corsHeaders)
+    }
+
+    const now = Date.now()
+
+    await env.DB.prepare(`
+      INSERT INTO players (uid, name, realm, realm_index, age, gold, speed_multiplier, speed_expire_at, created_at, last_active)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(uid) DO UPDATE SET
+        name = excluded.name,
+        realm = excluded.realm,
+        realm_index = excluded.realm_index,
+        age = excluded.age,
+        gold = excluded.gold,
+        speed_multiplier = excluded.speed_multiplier,
+        speed_expire_at = excluded.speed_expire_at,
+        last_active = excluded.last_active
+    `).bind(uid, name, realm, realmIndex, age, gold, speedMultiplier, speedExpireTime, now, now).run()
+
+    return jsonResponse({ success: true }, 200, corsHeaders)
+  } catch (err) {
+    return jsonResponse({ error: err.message }, 500, corsHeaders)
   }
 }
 
@@ -281,6 +340,54 @@ async function handleSaveConfig(request, env, corsHeaders) {
         'INSERT OR REPLACE INTO configs (key, value, updated_at) VALUES (?, ?, ?)'
       ).bind(key, strValue, now).run()
     }
+
+    return jsonResponse({ success: true }, 200, corsHeaders)
+  } catch (err) {
+    return jsonResponse({ error: err.message }, 500, corsHeaders)
+  }
+}
+
+// 商店管理
+async function handleGetShop(request, env, corsHeaders) {
+  try {
+    const row = await env.DB.prepare("SELECT value FROM configs WHERE key = 'shop_items'").first()
+    const items = row ? JSON.parse(row.value) : []
+    return jsonResponse(items, 200, corsHeaders)
+  } catch {
+    return jsonResponse([], 200, corsHeaders)
+  }
+}
+
+async function handleAddShopItem(request, env, corsHeaders) {
+  try {
+    const item = await request.json()
+    item.id = Date.now().toString(36) + Math.random().toString(36).substr(2, 4)
+
+    const row = await env.DB.prepare("SELECT value FROM configs WHERE key = 'shop_items'").first()
+    const items = row ? JSON.parse(row.value) : []
+    items.push(item)
+
+    await env.DB.prepare(
+      "INSERT OR REPLACE INTO configs (key, value, updated_at) VALUES (?, ?, ?)"
+    ).bind('shop_items', JSON.stringify(items), Date.now()).run()
+
+    return jsonResponse({ success: true, item }, 200, corsHeaders)
+  } catch (err) {
+    return jsonResponse({ error: err.message }, 500, corsHeaders)
+  }
+}
+
+async function handleDeleteShopItem(request, env, corsHeaders) {
+  try {
+    const { id } = await request.json()
+
+    const row = await env.DB.prepare("SELECT value FROM configs WHERE key = 'shop_items'").first()
+    let items = row ? JSON.parse(row.value) : []
+    items = items.filter(i => i.id !== id)
+
+    await env.DB.prepare(
+      "INSERT OR REPLACE INTO configs (key, value, updated_at) VALUES (?, ?, ?)"
+    ).bind('shop_items', JSON.stringify(items), Date.now()).run()
 
     return jsonResponse({ success: true }, 200, corsHeaders)
   } catch (err) {
