@@ -18,12 +18,15 @@ export const usePlayerStore = defineStore('player', () => {
   const lifespan = ref(80)
   const items = ref({ '疗伤丹': 3, '聚灵丹': 2 })
   const isDead = ref(false)
+  // 加速状态
+  const speedMultiplier = ref(1)
+  const speedExpireTime = ref(0) // 0 = 无加速, -1 = 永久, >0 = 剩余秒数
 
   // 计算属性
   const realm = computed(() => REALMS[realmIndex.value])
   const realmName = computed(() => realm.value.name)
   const maxExp = computed(() => realm.value.maxExp)
-  const cultivateSpeed = computed(() => realm.value.speed)
+  const cultivateSpeed = computed(() => realm.value.speed * speedMultiplier.value)
   const expPercent = computed(() => Math.min(100, (exp.value / maxExp.value) * 100))
   const hpPercent = computed(() => (hp.value / maxHp.value) * 100)
   const mpPercent = computed(() => (mp.value / maxMp.value) * 100)
@@ -33,7 +36,7 @@ export const usePlayerStore = defineStore('player', () => {
   // 方法
   function cultivate() {
     if (isDead.value) return null
-    const gain = realm.value.speed
+    const gain = realm.value.speed * speedMultiplier.value
     exp.value = Math.min(exp.value + gain, maxExp.value)
 
     // 随机事件
@@ -198,12 +201,68 @@ export const usePlayerStore = defineStore('player', () => {
     age.value = 16; lifespan.value = 80
     items.value = { '疗伤丹': 3, '聚灵丹': 2 }
     isDead.value = false
+    speedMultiplier.value = 1
+    speedExpireTime.value = 0
+  }
+
+  // 加速功能
+  function redeemSpeed(code) {
+    try {
+      // 解析兑换码：格式为 base64(JSON)
+      const decoded = atob(code)
+      const data = JSON.parse(decoded)
+
+      // 验证格式
+      if (!data.multiplier || !data.duration === undefined) {
+        return { success: false, error: '兑换码格式错误' }
+      }
+
+      // 验证有效期（兑换码生成后24小时内有效）
+      const now = Date.now()
+      if (data.expire && now > data.expire) {
+        return { success: false, error: '兑换码已过期' }
+      }
+
+      // 验证是否已使用
+      const usedCodes = JSON.parse(localStorage.getItem('used_codes') || '[]')
+      if (usedCodes.includes(code)) {
+        return { success: false, error: '兑换码已使用' }
+      }
+
+      // 激活加速
+      speedMultiplier.value = data.multiplier
+      if (data.duration === 0) {
+        // 永久
+        speedExpireTime.value = -1
+      } else {
+        speedExpireTime.value = data.duration
+      }
+
+      // 记录已使用
+      usedCodes.push(code)
+      localStorage.setItem('used_codes', JSON.stringify(usedCodes))
+
+      return { success: true, multiplier: data.multiplier, duration: data.duration }
+    } catch (e) {
+      return { success: false, error: '无效的兑换码' }
+    }
+  }
+
+  function tickSpeed() {
+    if (speedExpireTime.value > 0) {
+      speedExpireTime.value--
+      if (speedExpireTime.value <= 0) {
+        speedMultiplier.value = 1
+        speedExpireTime.value = 0
+      }
+    }
   }
 
   return {
     name, realmIndex, hp, maxHp, mp, maxMp, exp, atk, def, gold, age, lifespan, items, isDead,
     realm, realmName, maxExp, cultivateSpeed, expPercent, hpPercent, mpPercent, canBreakthrough, isMaxRealm,
     cultivate, ageUp, breakthrough, rest, takeDamage, heal, useMp, addItem, removeItem, useItem, revive, reset,
+    redeemSpeed, tickSpeed, speedMultiplier, speedExpireTime,
   }
 }, {
   persist: true,
