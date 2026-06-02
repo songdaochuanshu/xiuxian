@@ -70,7 +70,20 @@ app.use('*', cors())
 const ADMIN_PASSWORD = 'xiuxian2026'
 const SAVE_HMAC_KEY = 'xiuxian_save_hmac_2026_secret'
 
-const REALM_CONFIG: RealmConfig[] = [
+interface RealmRow {
+  name: string
+  sort_order: number
+  max_exp: number
+  hp: number
+  mp: number
+  atk: number
+  def: number
+  speed: number
+  lifespan: number
+  breakthrough_chance: number
+}
+
+const DEFAULT_REALMS: RealmConfig[] = [
   { name: '炼气期一层', speed: 1, lifespan: 80 },
   { name: '炼气期二层', speed: 1.5, lifespan: 85 },
   { name: '炼气期三层', speed: 2, lifespan: 90 },
@@ -84,8 +97,40 @@ const REALM_CONFIG: RealmConfig[] = [
   { name: '金丹期', speed: 50, lifespan: 500 },
   { name: '元婴期', speed: 120, lifespan: 1000 },
 ]
+const DEFAULT_MAX_EXP = [100, 200, 400, 800, 1500, 3000, 6000, 12000, 24000, 50000, 200000, 1000000]
 
-const MAX_EXP_ARR = [100, 200, 400, 800, 1500, 3000, 6000, 12000, 24000, 50000, 200000, 1000000]
+let cachedRealms: RealmRow[] | null = null
+let cacheTime = 0
+
+async function getRealms(db: D1Database): Promise<RealmRow[]> {
+  if (cachedRealms && Date.now() - cacheTime < 60000) return cachedRealms
+  try {
+    const rows = await db.prepare('SELECT * FROM realms ORDER BY sort_order').all<RealmRow>()
+    if (rows.results && rows.results.length > 0) {
+      cachedRealms = rows.results
+      cacheTime = Date.now()
+      return cachedRealms!
+    }
+  } catch {}
+  return []
+}
+
+async function getRealmConfigFromDB(db: D1Database, realmIndex: number): Promise<RealmConfig> {
+  const realms = await getRealms(db)
+  if (realms.length > 0) {
+    const r = realms[Math.min(realmIndex, realms.length - 1)]
+    return { name: r.name, speed: r.speed, lifespan: r.lifespan }
+  }
+  return DEFAULT_REALMS[Math.min(realmIndex, DEFAULT_REALMS.length - 1)]
+}
+
+async function getMaxExpFromDB(db: D1Database, realmIndex: number): Promise<number> {
+  const realms = await getRealms(db)
+  if (realms.length > 0) {
+    return realms[Math.min(realmIndex, realms.length - 1)].max_exp
+  }
+  return DEFAULT_MAX_EXP[Math.min(realmIndex, DEFAULT_MAX_EXP.length - 1)]
+}
 
 // ==================== 工具函数 ====================
 
@@ -134,7 +179,7 @@ async function processOfflineGain(db: D1Database, user: PlayerRow): Promise<Offl
   const offlineMs = Math.min(diffMs, maxOfflineMs)
   const offlineSeconds = Math.floor(offlineMs / 1000)
 
-  const realm = getRealmConfig(user.realm_index)
+  const realm = await getRealmConfigFromDB(db, user.realm_index)
   const speedMultiplier = user.speed_multiplier || 1
   const baseGain = realm.speed * speedMultiplier
   const totalGain = Math.floor(baseGain * offlineSeconds)
@@ -171,7 +216,7 @@ async function processOfflineGain(db: D1Database, user: PlayerRow): Promise<Offl
   let reincarnation = false
   let newRealmIndex = user.realm_index
   let newSpeedMultiplier = speedMultiplier
-  const expCap = getExpCap(user.realm_index)
+  const expCap = await getMaxExpFromDB(db, user.realm_index)
   let newExp = Math.min((user.exp || 0) + totalGain, expCap)
 
   if (lifespanRemaining <= 0) {
@@ -278,6 +323,13 @@ function validatePlayerData(data: SaveData, existingPlayer: PlayerRow | null): s
 app.get('/health', (c) => json({ status: 'ok' }))
 
 // 获取游戏公开配置（公告 + 游戏名等）
+// 获取境界列表
+app.get('/api/realms', async (c) => {
+  const db = c.env.DB
+  const realms = await getRealms(db)
+  return json({ realms })
+})
+
 app.get('/game/config', async (c) => {
   const db = c.env.DB
   try {
@@ -341,8 +393,8 @@ app.post('/player/sync', async (c) => {
     }
 
     const now = Date.now()
-    // 服务端根据 realm_index 计算境界名，保证数据一致
-    const realmName = getRealmConfig(realmIndex).name
+    const realmCfg = await getRealmConfigFromDB(db, realmIndex)
+    const realmName = realmCfg.name
 
     await db.prepare(`
       INSERT INTO players (uid, name, realm, realm_index, age, spirit_stones, speed_multiplier, speed_expire_at, last_heartbeat_time, created_at, last_active)
@@ -431,7 +483,7 @@ app.post('/api/battle/settle', async (c) => {
       }
     }
 
-    const expCap = getExpCap(user.realm_index)
+    const expCap = await getMaxExpFromDB(db, user.realm_index)
     const newExp = Math.min((user.exp || 0) + monster.exp_reward, expCap)
     const newStones = (user.spirit_stones || 0) + stoneReward
 
@@ -502,7 +554,7 @@ app.post('/api/lifespan/check', async (c) => {
     const user = await db.prepare('SELECT * FROM players WHERE uid = ?').bind(uid).first<PlayerRow>()
     if (!user) return json({ error: '玩家不存在' }, 404)
 
-    const realm = getRealmConfig(user.realm_index)
+    const realm = await getRealmConfigFromDB(db, user.realm_index)
     const lifespanRemaining = realm.lifespan - user.age
 
     if (lifespanRemaining > 0) {
@@ -598,7 +650,7 @@ app.post('/api/save/export', async (c) => {
       'SELECT ui.item_id, ui.quantity, i.name FROM user_inventory ui JOIN items i ON ui.item_id = i.id WHERE ui.user_uid = ?'
     ).bind(uid).all<InventoryRow>()
 
-    const expCap = getExpCap(player.realm_index)
+    const expCap = await getMaxExpFromDB(db, player.realm_index)
     const saveData: SaveData = {
       uid: player.uid,
       name: player.name,
