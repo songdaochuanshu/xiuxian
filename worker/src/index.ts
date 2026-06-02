@@ -386,6 +386,12 @@ app.post('/redeem', async (c) => {
     if (row.expire_at && Date.now() > row.expire_at) return json({ success: false, error: '兑换码已过期' })
 
     await db.prepare('UPDATE codes SET used = 1, used_at = ? WHERE code = ?').bind(Date.now(), normalizedCode).run()
+
+    // 自动突破码
+    if (row.code_type === 'auto_break') {
+      return json({ success: true, autoBreak: true })
+    }
+
     return json({ success: true, multiplier: row.multiplier, duration: row.duration })
   } catch (err: any) {
     return json({ success: false, error: '服务器错误' }, 500)
@@ -717,10 +723,9 @@ app.get('/admin/codes', async (c) => {
 app.post('/admin/codes', async (c) => {
   const db = c.env.DB
   try {
-    const { multiplier, duration, count = 1 } = await c.req.json<{ multiplier: number; duration: number; count: number }>()
+    const { multiplier, duration, count = 1, codeType = 'speed' } = await c.req.json<{ multiplier: number; duration: number; count: number; codeType?: string }>()
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-    const multTag = multiplier === 2 ? 'A' : multiplier === 5 ? 'B' : 'C'
-    const durTag = duration === 0 ? 'P' : 'T'
+    const prefix = codeType === 'auto_break' ? 'AB' : `${multiplier === 2 ? 'A' : multiplier === 5 ? 'B' : 'C'}${duration === 0 ? 'P' : 'T'}`
     const now = Date.now()
     const expireAt = duration === 0 ? null : now + 24 * 60 * 60 * 1000
 
@@ -728,10 +733,10 @@ app.post('/admin/codes', async (c) => {
     for (let i = 0; i < Math.min(count, 100); i++) {
       let random = ''
       for (let j = 0; j < 8; j++) random += chars[Math.floor(Math.random() * chars.length)]
-      const code = `${multTag}${durTag}-${random}`
+      const code = `${prefix}-${random}`
       codes.push(code)
-      await db.prepare('INSERT INTO codes (code, multiplier, duration, expire_at, created_at) VALUES (?, ?, ?, ?, ?)')
-        .bind(code, multiplier, duration, expireAt, now).run()
+      await db.prepare('INSERT INTO codes (code, multiplier, duration, expire_at, created_at, code_type) VALUES (?, ?, ?, ?, ?, ?)')
+        .bind(code, codeType === 'auto_break' ? 0 : multiplier, codeType === 'auto_break' ? 0 : duration, expireAt, now, codeType).run()
     }
     return json({ success: true, codes })
   } catch (err: any) {

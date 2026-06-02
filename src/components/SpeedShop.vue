@@ -140,6 +140,16 @@ const shopItems = [
     multiplier: 2,
     duration: 0,
   },
+  {
+    id: 'auto_break',
+    icon: '⚡',
+    name: '自动突破',
+    desc: '修为满自动突破',
+    price: 6.6,
+    multiplier: 0,
+    duration: 0,
+    autoBreak: true,
+  },
 ]
 
 function selectItem(item) {
@@ -156,11 +166,15 @@ async function handleRedeem() {
 
   const result = await player.redeemSpeed(code)
   if (result.success) {
-    game.addLog(`🎉 兑换成功！${result.multiplier}倍速已激活`, 'success')
-    if (result.duration > 0) {
-      game.addLog(`持续时间：${formatTime(result.duration)}`, 'info')
+    if (result.autoBreak) {
+      game.addLog(`🎉 自动突破已激活！修为满时自动突破境界`, 'breakthrough')
     } else {
-      game.addLog('永久生效！', 'breakthrough')
+      game.addLog(`🎉 兑换成功！${result.multiplier}倍速已激活`, 'success')
+      if (result.duration > 0) {
+        game.addLog(`持续时间：${formatTime(result.duration)}`, 'info')
+      } else {
+        game.addLog('永久生效！', 'breakthrough')
+      }
     }
     redeemCode.value = ''
   } else {
