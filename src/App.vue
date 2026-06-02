@@ -37,7 +37,7 @@
 
       <!-- 🏆 天榜 -->
       <div v-show="activeTab === 'rank'">
-        <Leaderboard />
+        <InlineLeaderboard />
         <AbyssRank />
       </div>
 
@@ -111,6 +111,7 @@ import Achievements from './components/Achievements.vue'
 import DailyCheckIn from './components/DailyCheckIn.vue'
 import Settings from './components/Settings.vue'
 import Leaderboard from './components/Leaderboard.vue'
+import InlineLeaderboard from './components/InlineLeaderboard.vue'
 import Chat from './components/Chat.vue'
 import Tasks from './components/Tasks.vue'
 import Abyss from './components/Abyss.vue'

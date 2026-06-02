@@ -758,6 +758,9 @@ app.post('/api/abyss/challenge', async (c) => {
 
       await db.prepare('UPDATE players SET abyss_layer = ?, abyss_max_layer = ? WHERE uid = ?').bind(newLayer, newMax, uid).run()
 
+      // 首通检查
+      const existing = await db.prepare('SELECT id FROM abyss_first_clear WHERE uid = ? AND layer = ?').bind(uid, layer).first()
+
       // 全服播报（每5层或首通）
       if (layer % 5 === 0 || !existing) {
         const playerName = await db.prepare('SELECT name FROM players WHERE uid = ?').bind(uid).first<{ name: string }>()
@@ -772,7 +775,7 @@ app.post('/api/abyss/challenge', async (c) => {
 
       // 首通奖励
       let firstReward = null
-      const existing = await db.prepare('SELECT id FROM abyss_first_clear WHERE uid = ? AND layer = ?').bind(uid, layer).first()
+      if (!existing) {
       if (!existing) {
         const reward = getFirstClearReward(layer)
         await db.prepare('INSERT INTO abyss_first_clear (uid, layer, cleared_at) VALUES (?, ?, ?)').bind(uid, layer, now).run()
