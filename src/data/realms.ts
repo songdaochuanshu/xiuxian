@@ -7,7 +7,10 @@ export interface Realm {
   def: number
   speed: number
   lifespan: number
+  breakthrough_chance?: number
 }
+
+const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxian-api.你的子域名.workers.dev'
 
 export const REALMS: Realm[] = [
   { name: '炼气期一层', maxExp: 100, hp: 100, mp: 50, atk: 10, def: 5, speed: 1, lifespan: 80 },
@@ -23,3 +26,37 @@ export const REALMS: Realm[] = [
   { name: '金丹期', maxExp: 200000, hp: 5000, mp: 4000, atk: 600, def: 400, speed: 50, lifespan: 500 },
   { name: '元婴期', maxExp: 1000000, hp: 15000, mp: 12000, atk: 1800, def: 1200, speed: 120, lifespan: 1000 },
 ]
+
+// 从服务器加载最新境界配置
+let loaded = false
+
+export async function loadRealms(): Promise<Realm[]> {
+  try {
+    const res = await fetch(`${API_URL}/api/realms`)
+    const data = await res.json()
+    if (data.realms && data.realms.length > 0) {
+      REALMS.length = 0
+      for (const r of data.realms) {
+        REALMS.push({
+          name: r.name,
+          maxExp: r.max_exp,
+          hp: r.hp,
+          mp: r.mp,
+          atk: r.atk,
+          def: r.def,
+          speed: r.speed,
+          lifespan: r.lifespan,
+          breakthrough_chance: r.breakthrough_chance,
+        })
+      }
+      loaded = true
+    }
+  } catch (e) {
+    console.error('加载境界配置失败，使用默认值:', e)
+  }
+  return REALMS
+}
+
+export function isRealmsLoaded() {
+  return loaded
+}

@@ -81,6 +81,7 @@
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { usePlayerStore } from './stores/player.ts'
 import { useGameStore } from './stores/game.ts'
+import { loadRealms } from './data/realms.ts'
 import PlayerInfo from './components/PlayerInfo.vue'
 import ActionPanel from './components/ActionPanel.vue'
 import ItemBag from './components/ItemBag.vue'
@@ -195,6 +196,9 @@ function startTick() {
 }
 
 onMounted(async () => {
+  // 加载境界配置
+  await loadRealms()
+
   try {
     const res = await fetch(`${API_URL}/game/config`)
     const cfg = await res.json()
