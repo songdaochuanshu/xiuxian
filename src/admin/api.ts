@@ -41,6 +41,9 @@ export const adminApi = {
   getPlayers: (page = 1, limit = 20) =>
     request(`/admin/players?page=${page}&limit=${limit}`),
 
+  // 排行榜
+  getLeaderboard: () => request('/api/leaderboard'),
+
   getConfig: () => request('/admin/config'),
 
   saveConfig: (config: Record<string, any>) =>

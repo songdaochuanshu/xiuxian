@@ -25,7 +25,7 @@
           <tr v-else-if="!entries.length">
             <td colspan="7" style="text-align:center">暂无数据</td>
           </tr>
-          <tr v-for="(entry, i) in entries" :key="entry.name + entry.updatedAt">
+          <tr v-for="(entry, i) in entries" :key="entry.name + entry.updated_at">
             <td>
               <span v-if="i === 0">🥇</span>
               <span v-else-if="i === 1">🥈</span>
@@ -37,7 +37,7 @@
             <td>{{ entry.score }}</td>
             <td>{{ entry.age }}</td>
             <td>{{ entry.gold }}</td>
-            <td>{{ formatTime(entry.updatedAt) }}</td>
+            <td>{{ formatTime(entry.updated_at) }}</td>
           </tr>
         </tbody>
       </table>
@@ -47,22 +47,15 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { adminApi } from '../api.ts'
 
 const entries = ref([])
 const loading = ref(true)
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxian-api.你的子域名.workers.dev'
-
 async function load() {
   loading.value = true
   try {
-    // 从 GitHub Issue 获取排行榜数据
-    const res = await fetch(
-      'https://api.github.com/repos/songdaochuanshu/xiuxian/issues/1',
-      { headers: { 'Accept': 'application/vnd.github.v3+json' } }
-    )
-    const issue = await res.json()
-    const data = JSON.parse(issue.body || '{"entries":[]}')
+    const data = await adminApi.getLeaderboard()
     entries.value = data.entries || []
   } catch (e) {
     console.error('加载失败:', e)
