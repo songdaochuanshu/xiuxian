@@ -46,6 +46,7 @@ export interface PlayerRow {
   abyss_layer: number
   abyss_max_layer: number
   abyss_last_reward: number
+  idle_start_at: number
 }
 
 /** 背包物品行 */
