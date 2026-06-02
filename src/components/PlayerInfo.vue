@@ -36,7 +36,7 @@
       </div>
 
       <div style="font-size:11px;color:var(--text-dim);text-align:center;margin-top:8px;font-family:'ZCOOL XiaoWei',serif;letter-spacing:1px">
-        速 {{ player.cultivateSpeed }} · 攻 {{ player.atk }} · 防 {{ player.def }} · 💎 {{ player.spiritStones }} · 💰 {{ player.gold }}
+        速 {{ player.cultivateSpeed }} · 攻 {{ player.atk }} · 防 {{ player.def }} · 灵石 💎 {{ player.spiritStones }}
       </div>
     </div>
   </div>

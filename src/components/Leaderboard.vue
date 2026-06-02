@@ -34,7 +34,7 @@
               <div class="lb-stats">
                 <div class="lb-score">⚔️ {{ entry.score }}</div>
                 <div class="lb-detail">
-                  年龄 {{ entry.age }} · 💎 {{ entry.gold }}
+                  年龄 {{ entry.age }} · 💎 {{ entry.spirit_stones ?? entry.gold }}
                 </div>
               </div>
             </div>
@@ -69,7 +69,7 @@ async function handleSubmit() {
     realmIndex: player.realmIndex,
     age: player.age,
     lifespan: player.lifespan,
-    gold: player.gold,
+    gold: player.spiritStones,
   })
 
   if (result.success) {

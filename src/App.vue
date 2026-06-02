@@ -142,7 +142,6 @@ async function syncPlayer() {
         realm: player.realmName,
         realmIndex: player.realmIndex,
         age: player.age,
-        gold: player.gold,
         spiritStones: player.spiritStones,
         speedMultiplier: player.speedMultiplier,
         speedExpireTime: player.speedExpireTime,

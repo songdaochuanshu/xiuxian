@@ -15,20 +15,20 @@ export async function fetchLeaderboard() {
   }
 }
 
-export async function submitScore({ uid, name, realm, realmIndex, age, lifespan, gold }: {
+export async function submitScore({ uid, name, realm, realmIndex, age, lifespan, spiritStones }: {
   uid: string
   name: string
   realm: string
   realmIndex: number
   age: number
   lifespan: number
-  gold: number
+  spiritStones: number
 }) {
   try {
     const res = await fetch(`${API_URL}/api/leaderboard/submit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid, name, realm, realmIndex, age, lifespan, gold }),
+      body: JSON.stringify({ uid, name, realm, realmIndex, age, lifespan, gold: spiritStones }),
     })
     return await res.json()
   } catch (err: any) {
