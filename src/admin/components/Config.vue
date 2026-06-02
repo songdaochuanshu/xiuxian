@@ -65,6 +65,21 @@
         </div>
       </div>
 
+      <!-- 安全配置 -->
+      <div class="config-section">
+        <h3>🔐 安全配置</h3>
+        <div class="config-grid">
+          <div class="config-item">
+            <label>管理密码</label>
+            <input v-model="config.admin_password" type="password" placeholder="xiuxian2026" />
+          </div>
+          <div class="config-item">
+            <label>存档签名密钥</label>
+            <input v-model="config.save_hmac_key" type="password" placeholder="修改后旧存档将失效" />
+          </div>
+        </div>
+      </div>
+
       <!-- 社群配置 -->
       <div class="config-section">
         <h3>👥 社群配置</h3>
@@ -146,6 +161,8 @@ const config = ref({
   qqGroup: '',
   qqGroupLink: '',
   qqGroupName: '',
+  admin_password: '',
+  save_hmac_key: '',
 })
 
 const loading = ref(true)
