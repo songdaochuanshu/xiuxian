@@ -491,8 +491,8 @@ function validatePlayerData(data, existingPlayer) {
     errors.push('境界索引越界')
   }
 
-  // 修为不能超过当前境界上限
-  const maxExp = [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200, 102400, 204800]
+  // 修为不能超过当前境界上限（与客户端 REALMS 一致）
+  const maxExp = [100, 200, 400, 800, 1500, 3000, 6000, 12000, 24000, 50000, 200000, 1000000]
   const expCap = maxExp[Math.min(data.realmIndex || 0, maxExp.length - 1)]
   if (data.exp > expCap) {
     errors.push(`修为 ${data.exp} 超过上限 ${expCap}`)
