@@ -143,7 +143,6 @@ export const useBattleStore = defineStore('battle', () => {
     addBattleLog(`🎉 击败 ${e.name}！`, 'success')
 
     // 更新任务进度
-    const game = useGameStore()
     game.updateTasks([
       { taskId: 'daily_battle_3' },
       { taskId: 'daily_battle_10' },
