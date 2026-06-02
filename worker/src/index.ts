@@ -292,6 +292,8 @@ app.get('/game/config', async (c) => {
       qrcodeUrl: config.qrcodeUrl || '',
       qrcodeBase64: config.qrcodeBase64 || '',
       payTip: config.payTip || '微信扫码支付',
+      qqGroup: config.qqGroup || '',
+      qqGroupName: config.qqGroupName || '',
     })
   } catch {
     return json({ gameName: '凡人修仙传', announcement: '' })

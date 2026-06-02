@@ -29,6 +29,14 @@
           <button v-if="player.uid" class="btn btn-sm" @click="copyUid">复制</button>
         </div>
 
+        <div v-if="qqGroup" class="setting-item" @click="joinQQGroup">
+          <div class="setting-info">
+            <div class="setting-name">👥 加入QQ群</div>
+            <div class="setting-desc">{{ qqGroupName || '玩家交流群' }} · {{ qqGroup }}</div>
+          </div>
+          <span class="setting-arrow">→</span>
+        </div>
+
         <div class="setting-item" @click="exportData">
           <div class="setting-info">
             <div class="setting-name">🔒 导出存档</div>
@@ -68,12 +76,16 @@ const game = useGameStore()
 
 const autoCultivate = ref(false)
 const gameName = ref('凡人修仙传')
+const qqGroup = ref('')
+const qqGroupName = ref('')
 
 onMounted(async () => {
   try {
     const res = await fetch(`${API_URL}/game/config`)
     const cfg = await res.json()
     if (cfg.gameName) gameName.value = cfg.gameName
+    if (cfg.qqGroup) qqGroup.value = cfg.qqGroup
+    if (cfg.qqGroupName) qqGroupName.value = cfg.qqGroupName
   } catch {}
   autoCultivate.value = localStorage.getItem('auto_cultivate') === 'true'
   if (autoCultivate.value && !game.cultivating) {
@@ -84,6 +96,11 @@ onMounted(async () => {
 function toggleAutoCultivate() {
   autoCultivate.value = !autoCultivate.value
   localStorage.setItem('auto_cultivate', autoCultivate.value)
+}
+
+function joinQQGroup() {
+  // QQ群链接
+  window.open(`https://qm.qq.com/q/${qqGroup.value}`, '_blank')
 }
 
 function copyUid() {
