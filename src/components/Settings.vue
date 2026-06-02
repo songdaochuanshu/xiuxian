@@ -59,8 +59,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { usePlayerStore } from '../stores/player.js'
-import { useGameStore } from '../stores/game.js'
+import { usePlayerStore } from '../stores/player.ts'
+import { useGameStore } from '../stores/game.ts'
 const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxian-api.你的子域名.workers.dev'
 
 const player = usePlayerStore()

@@ -27,9 +27,9 @@
 
 <script setup>
 import { computed } from 'vue'
-import { usePlayerStore } from '../stores/player.js'
-import { useGameStore } from '../stores/game.js'
-import { ITEMS } from '../data/items.js'
+import { usePlayerStore } from '../stores/player.ts'
+import { useGameStore } from '../stores/game.ts'
+import { ITEMS } from '../data/items.ts'
 
 const player = usePlayerStore()
 const game = useGameStore()

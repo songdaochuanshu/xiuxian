@@ -90,7 +90,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { adminApi } from '../api.js'
+import { adminApi } from '../api.ts'
 
 const codes = ref([])
 const total = ref(0)

@@ -34,7 +34,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { adminApi } from '../api.js'
+import { adminApi } from '../api.ts'
 
 const stats = ref({})
 const loading = ref(true)

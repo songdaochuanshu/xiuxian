@@ -53,9 +53,9 @@
 </template>
 
 <script setup>
-import { useLeaderboardStore } from '../stores/leaderboard.js'
-import { usePlayerStore } from '../stores/player.js'
-import { useGameStore } from '../stores/game.js'
+import { useLeaderboardStore } from '../stores/leaderboard.ts'
+import { usePlayerStore } from '../stores/player.ts'
+import { useGameStore } from '../stores/game.ts'
 
 const lb = useLeaderboardStore()
 const player = usePlayerStore()

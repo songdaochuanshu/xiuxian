@@ -73,7 +73,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { adminApi } from '../api.js'
+import { adminApi } from '../api.ts'
 
 const config = ref({
   gameName: '凡人修仙传',

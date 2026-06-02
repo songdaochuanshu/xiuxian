@@ -25,7 +25,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { usePlayerStore } from '../stores/player.js'
+import { usePlayerStore } from '../stores/player.ts'
 
 const player = usePlayerStore()
 const show = ref(false)
