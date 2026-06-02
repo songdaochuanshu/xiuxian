@@ -647,6 +647,56 @@ app.post('/api/leaderboard/submit', async (c) => {
   }
 })
 
+// ==================== 世界公告 ====================
+
+// 获取最近世界事件
+app.get('/api/world-events', async (c) => {
+  const db = c.env.DB
+  try {
+    const after = c.req.query('after')
+    let query = 'SELECT id, uid, name, event_type, content, realm, created_at FROM world_events'
+    const params: any[] = []
+    if (after) {
+      query += ' WHERE id > ?'
+      params.push(parseInt(after))
+    }
+    query += ' ORDER BY id DESC LIMIT 30'
+    const rows = await db.prepare(query).bind(...params).all()
+    return json({ events: (rows.results || []).reverse() })
+  } catch {
+    return json({ events: [] })
+  }
+})
+
+// 提交世界事件
+app.post('/api/world-events', async (c) => {
+  const db = c.env.DB
+  try {
+    const { uid, name, eventType, content, realm } = await c.req.json<{ uid: string; name: string; eventType: string; content: string; realm?: string }>()
+    if (!uid || !name || !content) return json({ error: '参数不完整' }, 400)
+
+    // 频率限制：每人每10秒最多1条
+    const recent = await db.prepare(
+      'SELECT id FROM world_events WHERE uid = ? AND created_at > ? ORDER BY id DESC LIMIT 1'
+    ).bind(uid, Date.now() - 10000).first()
+    if (recent) return json({ success: true, skipped: true })
+
+    // 保留最近200条
+    const count = await db.prepare('SELECT COUNT(*) as c FROM world_events').first<{ c: number }>()
+    if (count && count.c > 200) {
+      await db.prepare('DELETE FROM world_events WHERE id NOT IN (SELECT id FROM world_events ORDER BY id DESC LIMIT 200)').run()
+    }
+
+    await db.prepare(
+      'INSERT INTO world_events (uid, name, event_type, content, realm, created_at) VALUES (?, ?, ?, ?, ?, ?)'
+    ).bind(uid, name, eventType, content, realm || '', Date.now()).run()
+
+    return json({ success: true })
+  } catch (err: any) {
+    return json({ error: err.message }, 500)
+  }
+})
+
 // ==================== 聊天室 ====================
 
 // 获取最近消息

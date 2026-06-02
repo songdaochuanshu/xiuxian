@@ -71,6 +71,7 @@ function handleBreakthrough() {
     game.addLog(`气血: ${player.maxHp} · 灵力: ${player.maxMp} · 攻击: ${player.atk} · 寿元: ${player.lifespan}`, 'success')
     game.addLog(`天地感应，降下 ${result.goldReward} 灵石。`, 'info')
     game.triggerBreakthrough({ realmName: result.realmName, lifespanGain: result.lifespanGain })
+    game.postWorldEvent(player.uid, player.name, 'breakthrough', `✨ ${player.name} 突破成功，踏入 ${result.realmName}！`, player.realmName)
   } else {
     game.addLog(`💥 突破失败！走火入魔，损失 ${result.lostExp} 修为。`, 'battle')
     if (result.regress) {
