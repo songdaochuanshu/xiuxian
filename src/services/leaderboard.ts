@@ -2,7 +2,7 @@
  * 修排行榜 - 基于 Worker API + D1
  */
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxian-api.你的子域名.workers.dev'
+const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxianv-api.songdaochuanshu.workers.dev'
 
 export async function fetchLeaderboard() {
   try {
