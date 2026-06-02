@@ -31,16 +31,16 @@
 
         <div class="setting-item" @click="exportData">
           <div class="setting-info">
-            <div class="setting-name">导出存档</div>
-            <div class="setting-desc">保存游戏数据到剪贴板</div>
+            <div class="setting-name">🔒 导出存档</div>
+            <div class="setting-desc">加密保存游戏数据到剪贴板</div>
           </div>
           <span class="setting-arrow">→</span>
         </div>
 
         <div class="setting-item" @click="importData">
           <div class="setting-info">
-            <div class="setting-name">导入存档</div>
-            <div class="setting-desc">从剪贴板恢复游戏数据</div>
+            <div class="setting-name">🔓 导入存档</div>
+            <div class="setting-desc">从剪贴板解密恢复游戏数据</div>
           </div>
           <span class="setting-arrow">→</span>
         </div>
@@ -61,6 +61,7 @@
 import { ref, onMounted } from 'vue'
 import { usePlayerStore } from '../stores/player.js'
 import { useGameStore } from '../stores/game.js'
+const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxian-api.你的子域名.workers.dev'
 
 const player = usePlayerStore()
 const game = useGameStore()
@@ -85,29 +86,79 @@ function copyUid() {
     .catch(() => game.addLog('复制失败', 'battle'))
 }
 
-function exportData() {
-  const data = JSON.stringify(localStorage)
-  navigator.clipboard.writeText(data)
-    .then(() => game.addLog('存档已导出到剪贴板', 'success'))
-    .catch(() => game.addLog('导出失败', 'battle'))
+async function exportData() {
+  try {
+    game.addLog('正在导出存档...', 'info')
+
+    // 调用服务端接口，从数据库生成签名存档
+    const res = await fetch(`${API_URL}/api/save/export`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid: player.uid }),
+    })
+    const data = await res.json()
+
+    if (!data.success) {
+      game.addLog('导出失败: ' + (data.error || '未知错误'), 'battle')
+      return
+    }
+
+    await navigator.clipboard.writeText(data.save)
+    game.addLog('🔒 存档已签名导出到剪贴板', 'success')
+  } catch (e) {
+    console.error('导出失败:', e)
+    game.addLog('导出失败: 网络错误', 'battle')
+  }
 }
 
-function importData() {
-  navigator.clipboard.readText()
-    .then(text => {
-      try {
-        const data = JSON.parse(text)
-        if (confirm('确定导入存档？将覆盖当前数据！')) {
-          for (const [key, value] of Object.entries(data)) {
-            localStorage.setItem(key, value)
-          }
-          location.reload()
-        }
-      } catch {
-        game.addLog('剪贴板数据无效', 'battle')
-      }
+async function importData() {
+  try {
+    const text = await navigator.clipboard.readText()
+    if (!text || text.trim().length === 0) {
+      game.addLog('剪贴板为空', 'battle')
+      return
+    }
+
+    if (!confirm('确定导入存档？将覆盖当前数据！')) return
+
+    game.addLog('正在验证存档...', 'info')
+
+    // 提交服务端验证
+    const res = await fetch(`${API_URL}/api/save/import`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid: player.uid, save: text.trim() }),
     })
-    .catch(() => game.addLog('读取剪贴板失败', 'battle'))
+    const data = await res.json()
+
+    if (!data.success) {
+      game.addLog('导入失败: ' + (data.error || '存档验证不通过'), 'battle')
+      return
+    }
+
+    game.addLog('✅ 存档验证通过，正在恢复...', 'success')
+
+    // 用服务器返回的权威数据更新本地
+    if (data.player) {
+      const p = data.player
+      // 更新 pinia store
+      player.name = p.name
+      player.realmIndex = p.realmIndex
+      player.exp = p.exp
+      player.age = p.age
+      player.gold = p.gold
+      player.spiritStones = p.spiritStones || 0
+      player.speedMultiplier = p.speedMultiplier || 1
+      player.speedExpireTime = p.speedExpireTime || 0
+      player.items = p.items || {}
+      player.isDead = false
+    }
+
+    location.reload()
+  } catch (e) {
+    console.error('导入失败:', e)
+    game.addLog('导入失败: 网络错误', 'battle')
+  }
 }
 
 function resetGame() {
