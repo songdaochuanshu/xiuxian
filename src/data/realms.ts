@@ -1,4 +1,15 @@
-export const REALMS = [
+export interface Realm {
+  name: string
+  maxExp: number
+  hp: number
+  mp: number
+  atk: number
+  def: number
+  speed: number
+  lifespan: number
+}
+
+export const REALMS: Realm[] = [
   { name: '炼气期一层', maxExp: 100, hp: 100, mp: 50, atk: 10, def: 5, speed: 1, lifespan: 80 },
   { name: '炼气期二层', maxExp: 200, hp: 150, mp: 80, atk: 15, def: 8, speed: 1.5, lifespan: 85 },
   { name: '炼气期三层', maxExp: 400, hp: 200, mp: 120, atk: 22, def: 12, speed: 2, lifespan: 90 },

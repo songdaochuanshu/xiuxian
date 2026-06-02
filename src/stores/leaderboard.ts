@@ -2,20 +2,31 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { fetchLeaderboard, submitScore } from '../services/leaderboard.js'
 
+export interface LeaderboardEntry {
+  name: string
+  realm: string
+  realm_index: number
+  age: number
+  lifespan: number
+  gold: number
+  score: number
+  updated_at: number
+}
+
 export const useLeaderboardStore = defineStore('leaderboard', () => {
-  const entries = ref([])
+  const entries = ref<LeaderboardEntry[]>([])
   const loading = ref(false)
   const submitting = ref(false)
-  const lastResult = ref(null)
+  const lastResult = ref<any>(null)
   const visible = ref(false)
-  const error = ref(null)
+  const error = ref<string | null>(null)
 
   async function load() {
     loading.value = true
     error.value = null
     try {
       entries.value = await fetchLeaderboard()
-    } catch (err) {
+    } catch (err: any) {
       error.value = err.message
       console.error('加载排行榜失败:', err)
     } finally {
@@ -23,7 +34,15 @@ export const useLeaderboardStore = defineStore('leaderboard', () => {
     }
   }
 
-  async function submit(playerData) {
+  async function submit(playerData: {
+    uid: string
+    name: string
+    realm: string
+    realmIndex: number
+    age: number
+    lifespan: number
+    gold: number
+  }) {
     submitting.value = true
     error.value = null
     try {
@@ -31,12 +50,11 @@ export const useLeaderboardStore = defineStore('leaderboard', () => {
       lastResult.value = result
 
       if (result.success) {
-        // 提交成功后刷新列表
         await load()
       }
 
       return result
-    } catch (err) {
+    } catch (err: any) {
       error.value = err.message
       console.error('提交分数失败:', err)
       return { success: false, error: err.message }
