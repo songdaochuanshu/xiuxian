@@ -11,7 +11,7 @@
           <tr>
             <th>名字</th>
             <th>境界</th>
-            <th>等级</th>
+            <th>深渊</th>
             <th>年龄</th>
             <th>灵石</th>
             <th>加速</th>
@@ -20,15 +20,15 @@
         </thead>
         <tbody>
           <tr v-if="loading">
-            <td colspan="7" style="text-align:center">加载中...</td>
+            <td colspan="8" style="text-align:center">加载中...</td>
           </tr>
           <tr v-else-if="!players.length">
-            <td colspan="7" style="text-align:center">暂无数据</td>
+            <td colspan="8" style="text-align:center">暂无数据</td>
           </tr>
           <tr v-for="p in players" :key="p.id">
             <td>{{ p.name }}</td>
             <td>{{ p.realm || '-' }}</td>
-            <td>{{ p.realm_index }}</td>
+            <td>第{{ p.abyss_max_layer || 1 }}层</td>
             <td>{{ p.age }}</td>
             <td>{{ p.spirit_stones ?? p.gold }}</td>
             <td>

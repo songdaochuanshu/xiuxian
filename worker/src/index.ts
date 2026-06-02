@@ -647,6 +647,186 @@ app.post('/api/leaderboard/submit', async (c) => {
   }
 })
 
+// ==================== 镇妖塔（深渊）====================
+
+// 计算Boss属性（指数递增）
+function getAbyssBoss(layer: number) {
+  const baseHp = 200
+  const baseAtk = 30
+  const baseDef = 15
+  const mult = Math.pow(1.15, layer - 1) // 每层15%递增
+  return {
+    layer,
+    name: `第${layer}层守卫`,
+    hp: Math.floor(baseHp * mult),
+    atk: Math.floor(baseAtk * mult),
+    def: Math.floor(baseDef * mult),
+    // 每10层免疫低级控制，每50层降低闪避
+    immuneControl: layer >= 10,
+    reduceDodge: layer >= 50 ? Math.min(0.5, (layer - 50) * 0.01) : 0,
+  }
+}
+
+// 首通奖励
+function getFirstClearReward(layer: number) {
+  const stones = 50 + layer * 30 + Math.floor(layer / 10) * 200
+  const items: { name: string; amount: number }[] = []
+  // 每5层给破境丹
+  if (layer % 5 === 0) items.push({ name: '破境丹', amount: 1 + Math.floor(layer / 20) })
+  // 每10层给龙血丹
+  if (layer % 10 === 0) items.push({ name: '龙血丹', amount: 1 })
+  // 每25层给大还丹
+  if (layer % 25 === 0) items.push({ name: '大还丹', amount: 3 })
+  return { stones, items }
+}
+
+// 每日低保收益
+function getDailyReward(maxLayer: number) {
+  return 20 + maxLayer * 10 + Math.floor(maxLayer / 10) * 100
+}
+
+// 获取深渊信息
+app.get('/api/abyss', async (c) => {
+  const db = c.env.DB
+  try {
+    const uid = c.req.query('uid')
+    if (!uid) return json({ error: '缺少uid' }, 400)
+
+    const player = await db.prepare('SELECT abyss_layer, abyss_max_layer, abyss_last_reward FROM players WHERE uid = ?').bind(uid).first<any>()
+    if (!player) return json({ error: '玩家不存在' }, 404)
+
+    const layer = player.abyss_layer || 1
+    const maxLayer = player.abyss_max_layer || 1
+    const boss = getAbyssBoss(layer)
+    const dailyReward = getDailyReward(maxLayer)
+
+    // 检查首通记录
+    const firstClears = await db.prepare('SELECT layer FROM abyss_first_clear WHERE uid = ?').bind(uid).all()
+    const clearedLayers = new Set((firstClears.results || []).map((r: any) => r.layer))
+
+    // 检查低保是否可领
+    const now = Date.now()
+    const todayStart = new Date(Date.now() + 8 * 3600 * 1000)
+    todayStart.setUTCHours(0, 0, 0, 0)
+    const todayTs = todayStart.getTime() - 8 * 3600 * 1000
+    const canClaimDaily = (player.abyss_last_reward || 0) < todayTs
+
+    return json({
+      layer,
+      maxLayer,
+      boss,
+      dailyReward,
+      canClaimDaily,
+      clearedLayers: Array.from(clearedLayers),
+    })
+  } catch (err: any) {
+    return json({ error: err.message }, 500)
+  }
+})
+
+// 挑战Boss（结算）
+app.post('/api/abyss/challenge', async (c) => {
+  const db = c.env.DB
+  try {
+    const { uid, damage } = await c.req.json<{ uid: string; damage: number }>()
+    if (!uid || !damage) return json({ error: '参数不完整' }, 400)
+
+    const player = await db.prepare('SELECT abyss_layer, abyss_max_layer, spirit_stones FROM players WHERE uid = ?').bind(uid).first<any>()
+    if (!player) return json({ error: '玩家不存在' }, 404)
+
+    const layer = player.abyss_layer || 1
+    const boss = getAbyssBoss(layer)
+    const now = Date.now()
+
+    if (damage >= boss.hp) {
+      // 击败Boss
+      const newLayer = layer + 1
+      const newMax = Math.max(player.abyss_max_layer || 1, newLayer)
+
+      await db.prepare('UPDATE players SET abyss_layer = ?, abyss_max_layer = ? WHERE uid = ?').bind(newLayer, newMax, uid).run()
+
+      // 首通奖励
+      let firstReward = null
+      const existing = await db.prepare('SELECT id FROM abyss_first_clear WHERE uid = ? AND layer = ?').bind(uid, layer).first()
+      if (!existing) {
+        const reward = getFirstClearReward(layer)
+        await db.prepare('INSERT INTO abyss_first_clear (uid, layer, cleared_at) VALUES (?, ?, ?)').bind(uid, layer, now).run()
+        // 发灵石
+        await db.prepare('UPDATE players SET spirit_stones = spirit_stones + ? WHERE uid = ?').bind(reward.stones, uid).run()
+        // 发物品
+        for (const item of reward.items) {
+          const itemRow = await db.prepare('SELECT id FROM items WHERE name = ?').bind(item.name).first<{ id: number }>()
+          if (itemRow) {
+            await db.prepare(`INSERT INTO user_inventory (user_uid, item_id, quantity, created_at) VALUES (?, ?, ?, ?) ON CONFLICT(user_uid, item_id) DO UPDATE SET quantity = quantity + ?`).bind(uid, itemRow.id, item.amount, now, item.amount).run()
+          }
+        }
+        firstReward = reward
+      }
+
+      return json({
+        success: true,
+        win: true,
+        newLayer,
+        boss: getAbyssBoss(newLayer),
+        firstReward,
+      })
+    } else {
+      // 未击败
+      const remaining = boss.hp - damage
+      return json({
+        success: true,
+        win: false,
+        damage,
+        bossHp: boss.hp,
+        remaining,
+      })
+    }
+  } catch (err: any) {
+    return json({ error: err.message }, 500)
+  }
+})
+
+// 领取每日低保
+app.post('/api/abyss/daily-reward', async (c) => {
+  const db = c.env.DB
+  try {
+    const { uid } = await c.req.json<{ uid: string }>()
+    if (!uid) return json({ error: '缺少uid' }, 400)
+
+    const player = await db.prepare('SELECT abyss_max_layer, abyss_last_reward FROM players WHERE uid = ?').bind(uid).first<any>()
+    if (!player) return json({ error: '玩家不存在' }, 404)
+
+    const now = Date.now()
+    const todayStart = new Date(Date.now() + 8 * 3600 * 1000)
+    todayStart.setUTCHours(0, 0, 0, 0)
+    const todayTs = todayStart.getTime() - 8 * 3600 * 1000
+
+    if ((player.abyss_last_reward || 0) >= todayTs) {
+      return json({ error: '今日已领取' })
+    }
+
+    const reward = getDailyReward(player.abyss_max_layer || 1)
+    await db.prepare('UPDATE players SET spirit_stones = spirit_stones + ?, abyss_last_reward = ? WHERE uid = ?').bind(reward, now, uid).run()
+
+    return json({ success: true, reward })
+  } catch (err: any) {
+    return json({ error: err.message }, 500)
+  }
+})
+
+// 深渊排行榜
+app.get('/api/abyss/leaderboard', async (c) => {
+  const db = c.env.DB
+  try {
+    const rows = await db.prepare(
+      'SELECT name, realm, abyss_max_layer, uid FROM players WHERE abyss_max_layer > 1 ORDER BY abyss_max_layer DESC, created_at ASC LIMIT 50'
+    ).all()
+    return json({ entries: rows.results || [] })
+  } catch (err: any) {
+    return json({ entries: [], error: err.message })
+  }
+})
+
 // ==================== 任务系统 ====================
 
 // 获取今日日期字符串
