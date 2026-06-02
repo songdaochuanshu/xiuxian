@@ -325,8 +325,8 @@ app.get('/shop/config', async (c) => {
 app.post('/player/sync', async (c) => {
   const db = c.env.DB
   try {
-    const data = await c.req.json<{ uid: string; name: string; realm: string; realmIndex: number; age: number; gold: number; speedMultiplier: number; speedExpireTime: number }>()
-    const { uid, name, realm, realmIndex, age, gold, speedMultiplier, speedExpireTime } = data
+    const data = await c.req.json<{ uid: string; name: string; realm: string; realmIndex: number; age: number; gold: number; spiritStones: number; speedMultiplier: number; speedExpireTime: number }>()
+    const { uid, name, realm, realmIndex, age, gold, spiritStones, speedMultiplier, speedExpireTime } = data
 
     if (!uid || !name) return json({ error: '缺少必要参数' }, 400)
 
@@ -340,14 +340,14 @@ app.post('/player/sync', async (c) => {
     const now = Date.now()
 
     await db.prepare(`
-      INSERT INTO players (uid, name, realm, realm_index, age, gold, speed_multiplier, speed_expire_at, last_heartbeat_time, created_at, last_active)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO players (uid, name, realm, realm_index, age, gold, spirit_stones, speed_multiplier, speed_expire_at, last_heartbeat_time, created_at, last_active)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(uid) DO UPDATE SET
         name = excluded.name, realm = excluded.realm, realm_index = excluded.realm_index,
-        age = excluded.age, gold = excluded.gold, speed_multiplier = excluded.speed_multiplier,
-        speed_expire_at = excluded.speed_expire_at, last_heartbeat_time = excluded.last_heartbeat_time,
-        last_active = excluded.last_active
-    `).bind(uid, name, realm, realmIndex, age, gold, speedMultiplier, speedExpireTime || 0, now, now, now).run()
+        age = excluded.age, gold = excluded.gold, spirit_stones = excluded.spirit_stones,
+        speed_multiplier = excluded.speed_multiplier, speed_expire_at = excluded.speed_expire_at,
+        last_heartbeat_time = excluded.last_heartbeat_time, last_active = excluded.last_active
+    `).bind(uid, name, realm, realmIndex, age, gold, spiritStones || 0, speedMultiplier, speedExpireTime || 0, now, now, now).run()
 
     return json({ success: true, offline: offlineResult })
   } catch (err: any) {
