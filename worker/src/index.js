@@ -13,6 +13,8 @@ app.use('*', cors())
 
 // 管理密码
 const ADMIN_PASSWORD = 'xiuxian2026'
+// 存档签名密钥（只在服务端，用户伪造不了）
+const SAVE_HMAC_KEY = 'xiuxian_save_hmac_2026_secret'
 
 // 境界配置（修炼速度/寿元）
 const REALM_CONFIG = [
@@ -441,6 +443,205 @@ app.post('/api/lifespan/check', async (c) => {
       newRealm: '炼气期一层',
       newSpeedMultiplier,
       bonusSpeed: 0.1,
+    })
+  } catch (err) {
+    return json({ error: err.message }, 500)
+  }
+})
+
+// ==================== 存档导出/导入 ====================
+
+// HMAC 签名工具
+async function hmacSign(data, key) {
+  const enc = new TextEncoder()
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw', enc.encode(key), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  )
+  const signature = await crypto.subtle.sign('HMAC', cryptoKey, enc.encode(data))
+  return btoa(String.fromCharCode(...new Uint8Array(signature)))
+}
+
+async function hmacVerify(data, sig, key) {
+  const expected = await hmacSign(data, key)
+  return expected === sig
+}
+
+// 数据合理性校验
+function validatePlayerData(data, existingPlayer) {
+  const errors = []
+  const realm = getRealmConfig(data.realmIndex || 0)
+
+  // 境界范围检查
+  if (data.realmIndex < 0 || data.realmIndex >= REALM_CONFIG.length) {
+    errors.push('境界索引越界')
+  }
+
+  // 修为不能超过当前境界上限
+  const maxExp = [100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600, 51200, 102400, 204800]
+  const expCap = maxExp[Math.min(data.realmIndex || 0, maxExp.length - 1)]
+  if (data.exp > expCap) {
+    errors.push(`修为 ${data.exp} 超过上限 ${expCap}`)
+  }
+
+  // 金币不能超过合理范围（根据境界）
+  const maxGold = ((data.realmIndex || 0) + 1) * 10000
+  if (data.gold > maxGold) {
+    errors.push(`金币 ${data.gold} 超过上限 ${maxGold}`)
+  }
+
+  // 年龄检查
+  if (data.age < 16 || data.age > (data.lifespan || realm.lifespan) + 50) {
+    errors.push('年龄异常')
+  }
+
+  // 加速倍率不能超过上限
+  if (data.speedMultiplier > 20) {
+    errors.push('加速倍率异常')
+  }
+
+  // 如果有旧数据，检查不能跳跃太大
+  if (existingPlayer) {
+    const realmJump = Math.abs((data.realmIndex || 0) - existingPlayer.realm_index)
+    if (realmJump > 3) {
+      errors.push(`境界跳跃过大: ${existingPlayer.realm_index} → ${data.realmIndex}`)
+    }
+  }
+
+  return errors
+}
+
+// 导出存档（从服务端数据库生成签名存档）
+app.post('/api/save/export', async (c) => {
+  const db = c.env.DB
+  try {
+    const { uid } = await c.req.json()
+    if (!uid) return json({ error: '缺少uid' }, 400)
+
+    const player = await db.prepare('SELECT * FROM players WHERE uid = ?').bind(uid).first()
+    if (!player) return json({ error: '玩家不存在' }, 404)
+
+    // 查询背包
+    const inventory = await db.prepare(
+      'SELECT ui.item_id, ui.quantity, i.name FROM user_inventory ui JOIN items i ON ui.item_id = i.id WHERE ui.user_uid = ?'
+    ).bind(uid).all()
+
+    const saveData = {
+      uid: player.uid,
+      name: player.name,
+      realmIndex: player.realm_index,
+      exp: player.exp || 0,
+      age: player.age,
+      gold: player.gold || 0,
+      spiritStones: player.spirit_stones || 0,
+      speedMultiplier: player.speed_multiplier || 1,
+      speedExpireTime: player.speed_expire_at || 0,
+      items: {},
+      exportedAt: Date.now(),
+    }
+
+    // 转换背包
+    for (const row of (inventory.results || [])) {
+      saveData.items[row.name] = row.quantity
+    }
+
+    // 序列化 + HMAC 签名
+    const payload = JSON.stringify(saveData)
+    const signature = await hmacSign(payload, SAVE_HMAC_KEY)
+
+    // 最终格式：base64(签名.数据)
+    const exportPackage = btoa(JSON.stringify({ s: signature, d: saveData, v: 1 }))
+
+    return json({ success: true, save: exportPackage })
+  } catch (err) {
+    return json({ error: err.message }, 500)
+  }
+})
+
+// 导入存档（验证签名 + 合理性校验）
+app.post('/api/save/import', async (c) => {
+  const db = c.env.DB
+  try {
+    const { uid, save } = await c.req.json()
+    if (!uid || !save) return json({ error: '参数不完整' }, 400)
+
+    // 解析存档包
+    let pkg
+    try {
+      pkg = JSON.parse(atob(save))
+    } catch {
+      return json({ error: '存档格式无效' }, 400)
+    }
+
+    if (!pkg.s || !pkg.d) {
+      return json({ error: '存档缺少签名或数据' }, 400)
+    }
+
+    // 验证 HMAC 签名（服务端密钥，用户伪造不了）
+    const payload = JSON.stringify(pkg.d)
+    const valid = await hmacVerify(payload, pkg.s, SAVE_HMAC_KEY)
+    if (!valid) {
+      return json({ error: '存档签名无效，数据可能被篡改' }, 403)
+    }
+
+    // UID 必须匹配（不能拿别人的存档）
+    if (pkg.d.uid !== uid) {
+      return json({ error: '存档UID不匹配' }, 403)
+    }
+
+    // 查询现有玩家做对比校验
+    const existing = await db.prepare('SELECT * FROM players WHERE uid = ?').bind(uid).first()
+
+    // 数据合理性校验
+    const errors = validatePlayerData(pkg.d, existing)
+    if (errors.length > 0) {
+      return json({ error: '存档数据异常: ' + errors.join('; ') }, 403)
+    }
+
+    const now = Date.now()
+
+    // 写入数据库
+    const realmName = getRealmConfig(pkg.d.realmIndex).name
+    await db.prepare(`
+      INSERT INTO players (uid, name, realm, realm_index, exp, age, gold, spirit_stones, speed_multiplier, speed_expire_at, last_heartbeat_time, created_at, last_active)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(uid) DO UPDATE SET
+        name = excluded.name,
+        realm = excluded.realm,
+        realm_index = excluded.realm_index,
+        exp = excluded.exp,
+        age = excluded.age,
+        gold = excluded.gold,
+        spirit_stones = excluded.spirit_stones,
+        speed_multiplier = excluded.speed_multiplier,
+        speed_expire_at = excluded.speed_expire_at,
+        last_heartbeat_time = excluded.last_heartbeat_time,
+        last_active = excluded.last_active
+    `).bind(uid, pkg.d.name, realmName, pkg.d.realmIndex, pkg.d.exp, pkg.d.age, pkg.d.gold, pkg.d.spiritStones || 0, pkg.d.speedMultiplier || 1, pkg.d.speedExpireTime || 0, now, now, now).run()
+
+    // 返回更新后的数据，客户端可以同步到 localStorage
+    const updated = await db.prepare('SELECT * FROM players WHERE uid = ?').bind(uid).first()
+    const inventory = await db.prepare(
+      'SELECT i.name, ui.quantity FROM user_inventory ui JOIN items i ON ui.item_id = i.id WHERE ui.user_uid = ?'
+    ).bind(uid).all()
+    const items = {}
+    for (const row of (inventory.results || [])) {
+      items[row.name] = row.quantity
+    }
+
+    return json({
+      success: true,
+      message: '存档导入成功',
+      player: {
+        name: updated.name,
+        realmIndex: updated.realm_index,
+        exp: updated.exp || 0,
+        age: updated.age,
+        gold: updated.gold || 0,
+        spiritStones: updated.spirit_stones || 0,
+        speedMultiplier: updated.speed_multiplier || 1,
+        speedExpireTime: updated.speed_expire_at || 0,
+        items,
+      },
     })
   } catch (err) {
     return json({ error: err.message }, 500)
