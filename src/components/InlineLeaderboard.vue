@@ -27,6 +27,7 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import { useLeaderboardStore } from '../stores/leaderboard.ts'
 import { usePlayerStore } from '../stores/player.ts'
 import { useGameStore } from '../stores/game.ts'
@@ -34,6 +35,8 @@ import { useGameStore } from '../stores/game.ts'
 const lb = useLeaderboardStore()
 const player = usePlayerStore()
 const game = useGameStore()
+
+onMounted(() => { lb.load() })
 
 async function handleSubmit() {
   const result = await lb.submit({
