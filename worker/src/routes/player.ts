@@ -13,6 +13,146 @@ import { json, getRealmConfigFromDB, getMaxExpFromDB, randomInt, getToday } from
 
 export const playerRoutes = new Hono<{ Bindings: Env }>()
 
+// ==================== 挂机系统 ====================
+
+// 开始挂机
+playerRoutes.post('/api/idle/start', async (c) => {
+  const db = c.env.DB
+  try {
+    const { uid } = await c.req.json<{ uid: string }>()
+    if (!uid) return json({ error: '缺少uid' }, 400)
+
+    const player = await db.prepare('SELECT idle_start_at FROM players WHERE uid = ?').bind(uid).first<any>()
+    if (!player) return json({ error: '玩家不存在' }, 404)
+    if (player.idle_start_at > 0) return json({ error: '已经在挂机了' })
+
+    const now = Date.now()
+    await db.prepare('UPDATE players SET idle_start_at = ? WHERE uid = ?').bind(now, uid).run()
+    return json({ success: true, startTime: now })
+  } catch (err: any) {
+    return json({ error: err.message }, 500)
+  }
+})
+
+// 结算挂机收益
+playerRoutes.post('/api/idle/claim', async (c) => {
+  const db = c.env.DB
+  try {
+    const { uid } = await c.req.json<{ uid: string }>()
+    if (!uid) return json({ error: '缺少uid' }, 400)
+
+    const player = await db.prepare('SELECT * FROM players WHERE uid = ?').bind(uid).first<PlayerRow>()
+    if (!player) return json({ error: '玩家不存在' }, 404)
+    if (!player.idle_start_at || player.idle_start_at <= 0) return json({ error: '未在挂机' })
+
+    const now = Date.now()
+    const elapsedMs = now - player.idle_start_at
+    const maxMs = 12 * 60 * 60 * 1000 // 12小时
+    const validMs = Math.min(elapsedMs, maxMs)
+    const validSeconds = Math.floor(validMs / 1000)
+    const validMinutes = Math.floor(validMs / 60000)
+
+    // 计算收益
+    const realm = await getRealmConfigFromDB(db, player.realm_index)
+    const speedMultiplier = player.speed_multiplier || 1
+    const gain = Math.floor(realm.speed * speedMultiplier * validSeconds)
+
+    // 修为封顶
+    const expCap = await getMaxExpFromDB(db, player.realm_index)
+    const newExp = Math.min((player.exp || 0) + gain, expCap)
+
+    // 扣寿元（每分钟1岁）
+    const ageGain = validMinutes
+    const newAge = player.age + ageGain
+    const lifespanRemaining = realm.lifespan - newAge
+
+    let reincarnation = false
+    let newRealmIndex = player.realm_index
+    let newSpeedMultiplier = speedMultiplier
+
+    if (lifespanRemaining <= 0) {
+      reincarnation = true
+      newRealmIndex = 0
+      newSpeedMultiplier = speedMultiplier + 0.1
+    }
+
+    // 更新玩家数据
+    await db.prepare(`
+      UPDATE players SET
+        exp = ?, realm_index = ?, speed_multiplier = ?, age = ?,
+        idle_start_at = 0, last_heartbeat_time = ?, last_active = ?
+      WHERE uid = ?
+    `).bind(
+      reincarnation ? 0 : newExp,
+      newRealmIndex,
+      newSpeedMultiplier,
+      reincarnation ? 16 : newAge,
+      now, now, uid
+    ).run()
+
+    // 随机事件（2%）
+    let randomEvent = null
+    if (Math.random() < 0.02) {
+      const events = [
+        { type: 'item', itemId: 1, name: '疗伤丹' },
+        { type: 'item', itemId: 2, name: '聚灵丹' },
+        { type: 'item', itemId: 5, name: '蛇胆' },
+      ]
+      const event = events[Math.floor(Math.random() * events.length)]
+      await db.prepare(`
+        INSERT INTO user_inventory (user_uid, item_id, quantity, created_at)
+        VALUES (?, ?, 1, ?)
+        ON CONFLICT(user_uid, item_id) DO UPDATE SET quantity = quantity + 1
+      `).bind(uid, event.itemId, now).run()
+      randomEvent = { type: 'item', name: event.name }
+    }
+
+    return json({
+      success: true,
+      minutes: validMinutes,
+      gain,
+      reincarnation,
+      randomEvent,
+      capped: elapsedMs > maxMs,
+    })
+  } catch (err: any) {
+    return json({ error: err.message }, 500)
+  }
+})
+
+// 获取挂机状态
+playerRoutes.get('/api/idle/status', async (c) => {
+  const db = c.env.DB
+  try {
+    const uid = c.req.query('uid')
+    if (!uid) return json({ error: '缺少uid' }, 400)
+
+    const player = await db.prepare('SELECT idle_start_at, realm_index, speed_multiplier FROM players WHERE uid = ?').bind(uid).first<any>()
+    if (!player) return json({ error: '玩家不存在' }, 404)
+
+    const isIdling = player.idle_start_at > 0
+    const elapsedMs = isIdling ? Date.now() - player.idle_start_at : 0
+    const maxMs = 12 * 60 * 60 * 1000
+    const validMs = Math.min(elapsedMs, maxMs)
+
+    const realm = await getRealmConfigFromDB(db, player.realm_index)
+    const speedMultiplier = player.speed_multiplier || 1
+    const estimatedGain = Math.floor(realm.speed * speedMultiplier * (validMs / 1000))
+
+    return json({
+      isIdling,
+      startTime: player.idle_start_at || 0,
+      elapsedMinutes: Math.floor(validMs / 60000),
+      estimatedGain,
+      maxHours: 12,
+    })
+  } catch (err: any) {
+    return json({ error: err.message }, 500)
+  }
+})
+
+// ==================== 心跳 ====================
+
 // ==================== 离线挂机结算 ====================
 
 async function processOfflineGain(db: D1Database, user: PlayerRow): Promise<OfflineResult> {

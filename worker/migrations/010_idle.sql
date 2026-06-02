@@ -1,0 +1,1 @@
+ALTER TABLE players ADD COLUMN idle_start_at INTEGER DEFAULT 0;

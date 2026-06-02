@@ -17,6 +17,7 @@
         <PlayerInfo />
         <PixelCharacter />
         <ActionPanel />
+        <IdleFarm />
         <Tasks ref="tasksRef" />
       </div>
 
@@ -140,6 +141,7 @@ import InlineLeaderboard from './components/InlineLeaderboard.vue'
 import Chat from './components/Chat.vue'
 import Tasks from './components/Tasks.vue'
 import Abyss from './components/Abyss.vue'
+import IdleFarm from './components/IdleFarm.vue'
 import AbyssRank from './components/AbyssRank.vue'
 
 const player = usePlayerStore()
@@ -237,6 +239,37 @@ async function syncPlayer() {
       }),
     })
     const data = await res.json()
+
+    // 检查挂机收益
+    try {
+      const idleRes = await fetch(`${API_URL}/api/idle/status?uid=${player.uid}`)
+      const idleData = await idleRes.json()
+      if (idleData.isIdling && idleData.elapsedMinutes > 0) {
+        const claimRes = await fetch(`${API_URL}/api/idle/claim`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uid: player.uid }),
+        })
+        const claimData = await claimRes.json()
+        if (claimData.success) {
+          showOfflineReward.value = true
+          offlineData.value = {
+            offline: true,
+            offlineMinutes: claimData.minutes,
+            gain: claimData.gain,
+            randomEvent: claimData.randomEvent,
+            reincarnation: claimData.reincarnation,
+            isIdle: true,
+          }
+          if (claimData.reincarnation) {
+            player.realmIndex = 0
+            player.exp = 0
+            player.age = 16
+          }
+          return
+        }
+      }
+    } catch {}
 
     // 显示离线挂机收益
     if (data.offline && data.offline.offline) {
