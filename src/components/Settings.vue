@@ -16,7 +16,7 @@
         <div class="setting-item">
           <div class="setting-info">
             <div class="setting-name">游戏版本</div>
-            <div class="setting-desc">{{ gameName }} v1.0.0</div>
+            <div class="setting-desc">{{ gameName }} {{ version }}</div>
           </div>
           <span class="setting-value">Vue3 + Pinia</span>
         </div>
@@ -69,12 +69,14 @@
 import { ref, onMounted } from 'vue'
 import { usePlayerStore } from '../stores/player.ts'
 import { useGameStore } from '../stores/game.ts'
+import { APP_VERSION } from '../version.ts'
 const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxian-api.你的子域名.workers.dev'
 
 const player = usePlayerStore()
 const game = useGameStore()
 
 const autoCultivate = ref(false)
+const version = APP_VERSION
 const gameName = ref('凡人修仙传')
 const qqGroup = ref('')
 const qqGroupLink = ref('')
