@@ -109,7 +109,7 @@
             <div v-for="(r, i) in settleRewards" :key="i" class="reward-item">{{ r }}</div>
           </div>
           <button v-if="settleResult === 'win'" class="btn btn-settle-next" @click="continueNext">
-            继续挑战第{{ layer }}层
+            继续
           </button>
           <button v-else class="btn btn-settle-retry" @click="retryBoss">
             再次挑战
@@ -606,7 +606,7 @@ async function handleBossDeath() {
 // === 继续/重试 ===
 function continueNext() {
   showSettlement.value = false
-  // boss数据已在handleBossDeath中更新，直接可以再次挑战
+  fightBoss()
 }
 
 function retryBoss() {
