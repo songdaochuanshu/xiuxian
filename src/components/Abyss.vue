@@ -1,7 +1,7 @@
 <template>
   <div class="panel">
     <div class="panel-header">
-      <span>🗼 镇妖塔</span>
+      <span>镇妖塔</span>
       <span class="layer-badge">第{{ layer }}层</span>
     </div>
     <div class="panel-body">
@@ -87,21 +87,21 @@
         <!-- 技能按钮 -->
         <div class="skill-bar">
           <button class="skill-btn skill-normal" :disabled="animating" @click="doAttack('normal')">
-            <span class="skill-icon">⚔️</span>
+            <span class="skill-icon">斩</span>
             <span class="skill-name">普攻</span>
           </button>
           <button class="skill-btn skill-crit" :disabled="animating" @click="doAttack('crit')">
-            <span class="skill-icon">💥</span>
+            <span class="skill-icon">暴</span>
             <span class="skill-name">暴击</span>
             <span class="skill-cost">10灵力</span>
           </button>
           <button class="skill-btn skill-spirit" :disabled="animating" @click="doAttack('spirit')">
-            <span class="skill-icon">✨</span>
+            <span class="skill-icon">灵</span>
             <span class="skill-name">灵技</span>
             <span class="skill-cost">25灵力</span>
           </button>
           <button class="skill-btn skill-slash" :disabled="animating" @click="doAttack('slash')">
-            <span class="skill-icon">🌀</span>
+            <span class="skill-icon">剑</span>
             <span class="skill-name">剑气斩</span>
             <span class="skill-cost">40灵力</span>
           </button>
@@ -111,14 +111,14 @@
       <!-- 操作按钮 -->
       <div v-if="!fighting" class="abyss-actions">
         <button class="btn btn-full btn-fight" @click="fightBoss">
-          ⚔️ 挑战Boss
+          挑战Boss
         </button>
       </div>
 
       <!-- 战斗结算 -->
       <transition name="settle-pop">
         <div v-if="showSettlement" class="settlement" :class="{ 'settle-win': settleResult === 'win', 'settle-lose': settleResult === 'lose' }">
-          <div class="settle-icon">{{ settleResult === 'win' ? '🎉' : '💀' }}</div>
+          <div class="settle-icon">{{ settleResult === 'win' ? '胜' : '败' }}</div>
           <div class="settle-title">{{ settleResult === 'win' ? 'Boss已被击败！' : '挑战失败...' }}</div>
           <div class="settle-detail">{{ settleDetail }}</div>
           <div v-if="settleRewards.length" class="settle-rewards">
@@ -130,8 +130,8 @@
       <!-- 每日低保 -->
       <div class="daily-section">
         <div class="daily-info">
-          <span>🎁 每日低保</span>
-          <span class="daily-amount">💎 {{ dailyReward }}灵石</span>
+          <span>每日低保</span>
+          <span class="daily-amount">灵石 {{ dailyReward }}</span>
         </div>
         <button class="btn btn-sm" :class="{ 'btn-disabled': !canClaimDaily }" :disabled="!canClaimDaily"
           @click="claimDaily">{{ canClaimDaily ? '领取' : '已领取' }}</button>
@@ -263,17 +263,17 @@ async function fightBoss() {
   settleRewards.value = []
   battleLog.value = []
 
-  addLog(`遭遇第${layer.value}层Boss「${boss.value.name}」！`, 'system', '🗼')
-  addLog(`Boss属性：❤️${formatNum(boss.value.hp)} ⚔️${formatNum(boss.value.atk)} 🛡️${formatNum(boss.value.def)}`, 'info', '📊')
-  if (boss.value.immuneControl) addLog('⚠️ 此Boss免疫控制技能！', 'warning', '⚠️')
+  addLog(`遭遇第${layer.value}层Boss「${boss.value.name}」！`, 'system', '塔')
+  addLog(`Boss属性：血${formatNum(boss.value.hp)} 攻${formatNum(boss.value.atk)} 防${formatNum(boss.value.def)}`, 'info', '情')
+  if (boss.value.immuneControl) addLog('此Boss免疫控制技能！', 'warning', '!')
 }
 
 // === 技能系统 ===
 const SKILLS = {
-  normal: { name: '普攻', icon: '⚔️', mpCost: 0, dmgMult: 1, critChance: 0.1, desc: '基础攻击' },
-  crit: { name: '暴击', icon: '💥', mpCost: 10, dmgMult: 1.8, critChance: 0.35, desc: '高暴击率攻击' },
-  spirit: { name: '灵技', icon: '✨', mpCost: 25, dmgMult: 2.5, critChance: 0.15, desc: '灵力凝聚一击' },
-  slash: { name: '剑气斩', icon: '🌀', mpCost: 40, dmgMult: 4.0, critChance: 0.2, desc: '释放剑气，造成巨额伤害' },
+  normal: { name: '普攻', icon: '斩', mpCost: 0, dmgMult: 1, critChance: 0.1, desc: '基础攻击' },
+  crit: { name: '暴击', icon: '暴', mpCost: 10, dmgMult: 1.8, critChance: 0.35, desc: '高暴击率攻击' },
+  spirit: { name: '灵技', icon: '灵', mpCost: 25, dmgMult: 2.5, critChance: 0.15, desc: '灵力凝聚一击' },
+  slash: { name: '剑气斩', icon: '剑', mpCost: 40, dmgMult: 4.0, critChance: 0.2, desc: '释放剑气，造成巨额伤害' },
 }
 
 async function doAttack(skillKey) {
@@ -282,7 +282,7 @@ async function doAttack(skillKey) {
 
   // 检查灵力
   if (skill.mpCost > 0 && player.mp < skill.mpCost) {
-    addLog(`灵力不足！需要${skill.mpCost}灵力`, 'warning', '❌')
+    addLog(`灵力不足！需要${skill.mpCost}灵力`, 'warning', '!')
     return
   }
 
@@ -313,9 +313,9 @@ async function doAttack(skillKey) {
 
   // 战斗日志
   if (skillKey === 'normal') {
-    addLog(`第${turn.value}回合：你挥剑攻击，${isCrit ? '💥暴击！' : ''}造成 ${formatNum(dmg)} 伤害`, isCrit ? 'crit' : 'attack', skill.icon)
+    addLog(`第${turn.value}回合：你挥剑攻击，${isCrit ? '暴击！' : ''}造成 ${formatNum(dmg)} 伤害`, isCrit ? 'crit' : 'attack', skill.icon)
   } else {
-    addLog(`第${turn.value}回合：你释放【${skill.name}】${isCrit ? '💥暴击！' : ''}造成 ${formatNum(dmg)} 伤害`, isCrit ? 'crit' : 'skill', skill.icon)
+    addLog(`第${turn.value}回合：你释放【${skill.name}】${isCrit ? '暴击！' : ''}造成 ${formatNum(dmg)} 伤害`, isCrit ? 'crit' : 'skill', skill.icon)
   }
 
   await sleep(600)
@@ -331,13 +331,13 @@ async function doAttack(skillKey) {
   const bossDmg = Math.max(1, boss.value.atk - player.def + Math.floor(Math.random() * boss.value.atk * 0.2))
   player.takeDamage(bossDmg)
   addFloatingDamage(`-${formatNum(bossDmg)}`, false, false, false)
-  addLog(`${boss.value.name} 反击！造成 ${formatNum(bossDmg)} 伤害`, 'boss-attack', '🔥')
+  addLog(`${boss.value.name} 反击！造成 ${formatNum(bossDmg)} 伤害`, 'boss-attack', '反')
 
   await sleep(400)
 
   // 检查玩家死亡
   if (player.isDead) {
-    addLog('你被击败了...重伤昏迷', 'defeat', '💀')
+    addLog('你被击败了...重伤昏迷', 'defeat', '败')
     await sleep(1000)
     player.revive()
     game.addLog('你重伤昏迷，被路人救起，损失一成修为。', 'battle')
@@ -353,7 +353,7 @@ async function doAttack(skillKey) {
 
 async function handleBossDeath() {
   bossDead.value = true
-  addLog(`🎉 击败「${boss.value.name}」！`, 'victory', '🏆')
+  addLog(`击败「${boss.value.name}」！`, 'victory', '胜')
 
   // 请求服务器结算
   try {
@@ -367,12 +367,12 @@ async function handleBossDeath() {
     if (data.win) {
       const rewards = []
       if (data.firstReward) {
-        rewards.push(`💎 ${data.firstReward.stones}灵石`)
+        rewards.push(`${data.firstReward.stones}灵石`)
         for (const item of data.firstReward.items) {
-          rewards.push(`📦 ${item.name} ×${item.amount}`)
+          rewards.push(`${item.name} ×${item.amount}`)
         }
       }
-      rewards.push(`🗼 进入第${data.newLayer}层`)
+      rewards.push(`进入第${data.newLayer}层`)
 
       layer.value = data.newLayer
       boss.value = data.boss
@@ -383,11 +383,11 @@ async function handleBossDeath() {
       settleRewards.value = rewards
       showSettlement.value = true
 
-      game.addLog(`🗼 击败第${layer.value - 1}层Boss！进入第${data.newLayer}层！`, 'breakthrough')
+      game.addLog(`击败第${layer.value - 1}层Boss！进入第${data.newLayer}层！`, 'breakthrough')
       game.updateTasks([{ taskId: 'main_kill_10' }, { taskId: 'main_kill_100' }])
     }
   } catch {
-    addLog('网络错误，结算失败', 'warning', '❌')
+    addLog('网络错误，结算失败', 'warning', '!')
   }
 
   await sleep(2000)
@@ -406,7 +406,7 @@ async function claimDaily() {
     const data = await res.json()
     if (data.success) {
       player.spiritStones += data.reward
-      game.addLog(`🎁 领取深渊低保：${data.reward}灵石`, 'success')
+      game.addLog(`领取深渊低保：${data.reward}灵石`, 'success')
       canClaimDaily.value = false
     } else {
       game.addLog(data.error || '领取失败', 'battle')

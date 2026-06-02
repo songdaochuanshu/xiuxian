@@ -11,7 +11,7 @@
 
     <!-- Tab 内容 -->
     <div class="tab-content">
-      <!-- 🏠 修行 -->
+      <!-- 修行 -->
       <div v-show="activeTab === 'home'">
         <Announcement />
         <PlayerInfo />
@@ -21,36 +21,36 @@
         <Tasks ref="tasksRef" />
       </div>
 
-      <!-- 🗼 深渊 -->
+      <!-- 深渊 -->
       <div v-show="activeTab === 'abyss'">
         <Abyss />
       </div>
 
-      <!-- 📦 背包 -->
+      <!-- 背包 -->
       <div v-show="activeTab === 'bag'">
         <ItemBag />
       </div>
 
-      <!-- 💬 频道 -->
+      <!-- 频道 -->
       <div v-show="activeTab === 'chat'">
         <Chat />
       </div>
 
-      <!-- 🏆 天榜 -->
+      <!-- 天榜 -->
       <div v-show="activeTab === 'rank'">
         <InlineLeaderboard />
         <AbyssRank />
       </div>
 
-      <!-- 🏪 坊市 -->
+      <!-- 坊市 -->
       <div v-show="activeTab === 'shop'">
         <Shop />
         <SpeedShop />
       </div>
 
-      <!-- 🎖️ 成就（移到设置里） -->
+      <!-- 成就（移到设置里） -->
 
-      <!-- ⚙️ 设置 -->
+      <!-- 设置 -->
       <div v-show="activeTab === 'settings'">
         <Achievements ref="achievementsRef" />
         <DailyCheckIn />
@@ -62,7 +62,7 @@
   <!-- 浮动日志 -->
   <div class="floating-log" :class="{ expanded: logExpanded }" @click="logExpanded = !logExpanded">
     <div class="log-header">
-      <span>📜 修仙录</span>
+      <span>修仙录</span>
       <span class="log-toggle">{{ logExpanded ? '收起' : '展开' }}</span>
     </div>
     <div class="log-body" ref="logBody">
@@ -91,19 +91,19 @@
   <Teleport to="body">
     <div v-if="showOfflineReward" class="offline-overlay" @click.self="showOfflineReward = false">
       <div class="offline-box">
-        <div class="offline-title">🌙 离线挂机收益</div>
+        <div class="offline-title">离线挂机收益</div>
         <div class="offline-desc">你离开了 {{ offlineData?.offlineMinutes || 0 }} 分钟</div>
         <div class="offline-rewards">
           <div class="offline-item">
-            <span class="offline-icon">📈</span>
+            <span class="offline-icon">修</span>
             <span>修为 +{{ offlineData?.gain || 0 }}</span>
           </div>
           <div v-if="offlineData?.randomEvent" class="offline-item">
-            <span class="offline-icon">{{ offlineData.randomEvent.type === 'item' ? '🎁' : '⚠️' }}</span>
+            <span class="offline-icon">{{ offlineData.randomEvent.type === 'item' ? '获' : '!' }}</span>
             <span>{{ offlineData.randomEvent.type === 'item' ? '获得 ' + offlineData.randomEvent.name : offlineData.randomEvent.desc }}</span>
           </div>
           <div v-if="offlineData?.reincarnation" class="offline-item offline-reincarnation">
-            <span class="offline-icon">🔄</span>
+            <span class="offline-icon">轮</span>
             <span>寿元已尽，转世重修！加速 +0.1</span>
           </div>
         </div>
@@ -157,12 +157,12 @@ const achievementsRef = ref(null)
 const tasksRef = ref(null)
 
 const tabs = [
-  { key: 'home', icon: '🏠', label: '修行' },
-  { key: 'bag', icon: '📦', label: '背包' },
-  { key: 'abyss', icon: '🗼', label: '深渊' },
-  { key: 'chat', icon: '💬', label: '频道' },
-  { key: 'rank', icon: '🏆', label: '天榜' },
-  { key: 'settings', icon: '⚙️', label: '设置' },
+  { key: 'home', icon: '修', label: '修行' },
+  { key: 'bag', icon: '囊', label: '背包' },
+  { key: 'abyss', icon: '塔', label: '深渊' },
+  { key: 'chat', icon: '言', label: '频道' },
+  { key: 'rank', icon: '榜', label: '天榜' },
+  { key: 'settings', icon: '⚙', label: '设置' },
 ]
 
 const recentLogs = computed(() => {
@@ -282,7 +282,7 @@ async function syncPlayer() {
         player.exp = 0
         player.age = 16
         player.speedMultiplier = o.newSpeedMultiplier || player.speedMultiplier + 0.1
-        game.addLog(`🔄 寿元已尽，转世重修！加速 +0.1`, 'breakthrough')
+        game.addLog('寿元已尽，转世重修！加速 +0.1', 'breakthrough')
       }
     }
   } catch (e) {}
@@ -301,19 +301,19 @@ function startTick() {
         const ageResult = player.ageUp()
         if (ageResult.dead) {
           game.addLog('天劫降临！寿元已尽...', 'battle')
-          game.postWorldEvent(player.uid, player.name, 'death', `💀 ${player.name} 寿元已尽，陨落于${player.realmName}...`)
+          game.postWorldEvent(player.uid, player.name, 'death', `${player.name} 寿元已尽，陨落于${player.realmName}...`)
           game.toggleCultivate()
           return
         }
         if (ageResult.warning) {
-          game.addLog(`⚠️ 寿元将尽！剩余${ageResult.remaining}年`, 'battle')
+          game.addLog(`寿元将尽！剩余${ageResult.remaining}年`, 'battle')
         }
       }
 
       if (game.tickCount % 5 === 0 && achievementsRef.value) {
         const newAch = achievementsRef.value.checkAchievements()
         if (newAch) {
-          game.addLog(`🎖️ 成就解锁！${newAch.icon} ${newAch.name}`, 'breakthrough')
+          game.addLog(`成就解锁！${newAch.name}`, 'breakthrough')
         }
       }
 
@@ -322,9 +322,9 @@ function startTick() {
         if (player.autoBreak && !player.isMaxRealm) {
           const r = player.breakthrough()
           if (r.success) {
-            game.addLog(`✨ 自动突破！${r.realmName}`, 'breakthrough')
+            game.addLog(`自动突破！${r.realmName}`, 'breakthrough')
             game.triggerBreakthrough({ realmName: r.realmName, lifespanGain: r.lifespanGain })
-            game.postWorldEvent(player.uid, player.name, 'breakthrough', `✨ ${player.name} 突破成功，踏入 ${r.realmName}！`, player.realmName)
+            game.postWorldEvent(player.uid, player.name, 'breakthrough', `${player.name} 突破成功，踏入 ${r.realmName}！`, player.realmName)
           } else if (!r.needItem) {
             game.addLog(`突破失败，损失 ${r.lostExp} 修为`, 'battle')
           }

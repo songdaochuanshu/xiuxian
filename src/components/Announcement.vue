@@ -1,6 +1,6 @@
 <template>
   <div v-if="announcement" class="announcement" @click="expanded = !expanded">
-    <div class="announce-icon">📢</div>
+    <div class="announce-icon">告</div>
     <div class="announce-text" :class="{ expanded }">{{ announcement }}</div>
     <div class="announce-toggle">{{ expanded ? '收起' : '展开' }}</div>
   </div>

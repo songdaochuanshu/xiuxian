@@ -2,7 +2,7 @@
   <div class="panel">
     <div class="panel-header">
       <span>乾坤袋</span>
-      <span style="font-size:12px">💎 {{ player.spiritStones }}</span>
+      <span style="font-size:12px">灵石 {{ player.spiritStones }}</span>
     </div>
     <div class="panel-body">
       <div v-if="itemList.length === 0" style="text-align:center;color:var(--text-dim);font-size:12px;padding:12px">
@@ -40,7 +40,7 @@ const itemList = computed(() => {
     .map(([name, count]) => ({
       name,
       count,
-      icon: ITEMS[name]?.icon || '📦',
+      icon: ITEMS[name]?.icon || '物',
       desc: ITEMS[name]?.desc || '',
     }))
 })

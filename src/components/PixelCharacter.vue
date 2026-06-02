@@ -2,8 +2,8 @@
   <div class="char-scene">
     <!-- 背景装饰 -->
     <div class="scene-bg">
-      <div class="cloud c1">☁️</div>
-      <div class="cloud c2">☁️</div>
+      <div class="cloud c1">云</div>
+      <div class="cloud c2">云</div>
     </div>
 
     <!-- 角色图片 -->
@@ -47,11 +47,11 @@ const charSrc = computed(() => {
 
 const statusLabel = computed(() => {
   switch (animState.value) {
-    case 'dead': return '💀 陨落'
-    case 'breakthrough': return '⚡ 突破！'
-    case 'battle': return '⚔️ 战斗中'
-    case 'cultivate': return '🧘 修炼中'
-    default: return '🌿 闲逛'
+    case 'dead': return '陨落'
+    case 'breakthrough': return '突破！'
+    case 'battle': return '战斗中'
+    case 'cultivate': return '修炼中'
+    default: return '闲逛'
   }
 })
 </script>

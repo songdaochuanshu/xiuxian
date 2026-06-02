@@ -1,7 +1,7 @@
 <template>
   <div class="panel">
     <div class="panel-header">
-      <span>🎖️ 成就</span>
+      <span>成就</span>
       <span class="achievement-count">{{ unlockedCount }}/{{ achievements.length }}</span>
     </div>
     <div class="panel-body">
@@ -36,23 +36,23 @@ const expanded = ref(false)
 const SHOW_COUNT = 4
 
 const achievements = [
-  { id: 'first_cultivate', name: '初入修途', desc: '第一次开始修炼', icon: '🌱', check: () => player.realmIndex >= 0 },
+  { id: 'first_cultivate', name: '初入修途', desc: '第一次开始修炼', icon: '初', check: () => player.realmIndex >= 0 },
   { id: 'lianyi_2', name: '炼气小成', desc: '达到炼气期二层', icon: '⭐', check: () => player.realmIndex >= 1 },
-  { id: 'lianyi_5', name: '炼气中期', desc: '达到炼气期五层', icon: '🌟', check: () => player.realmIndex >= 4 },
-  { id: 'lianyi_9', name: '炼气巅峰', desc: '达到炼气期九层', icon: '💫', check: () => player.realmIndex >= 8 },
-  { id: 'zhuji', name: '筑基真人', desc: '突破筑基期', icon: '🏛️', check: () => player.realmIndex >= 9 },
-  { id: 'jindan', name: '金丹大道', desc: '突破金丹期', icon: '💎', check: () => player.realmIndex >= 10 },
-  { id: 'yuanying', name: '元婴老祖', desc: '突破元婴期', icon: '👑', check: () => player.realmIndex >= 11 },
-  { id: 'rich_100', name: '小有家财', desc: '拥有100灵石', icon: '💰', check: () => player.spiritStones >= 100 },
-  { id: 'rich_1000', name: '腰缠万贯', desc: '拥有1000灵石', icon: '💎', check: () => player.spiritStones >= 1000 },
-  { id: 'kill_10', name: '初试身手', desc: '探索秘境10次', icon: '⚔️', check: () => (player.stats.explore_count || 0) >= 10 },
-  { id: 'kill_50', name: '身经百战', desc: '探索秘境50次', icon: '🗡️', check: () => (player.stats.explore_count || 0) >= 50 },
-  { id: 'old_50', name: '半百之年', desc: '年龄达到50岁', icon: '🎂', check: () => player.age >= 50 },
-  { id: 'old_100', name: '百岁寿星', desc: '年龄达到100岁', icon: '🎊', check: () => player.age >= 100 },
-  { id: 'speed_2x', name: '加速修炼', desc: '激活任意倍速', icon: '🚀', check: () => player.speedMultiplier > 1 },
-  { id: 'auto_break', name: '自动突破', desc: '激活自动突破', icon: '⚡', check: () => player.autoBreak },
-  { id: 'full_hp', name: '气血充沛', desc: '气血上限达到500', icon: '❤️', check: () => player.maxHp >= 500 },
-  { id: 'strong_atk', name: '攻击力', desc: '攻击力达到100', icon: '💪', check: () => player.atk >= 100 },
+  { id: 'lianyi_5', name: '炼气中期', desc: '达到炼气期五层', icon: '炼', check: () => player.realmIndex >= 4 },
+  { id: 'lianyi_9', name: '炼气巅峰', desc: '达到炼气期九层', icon: '巅', check: () => player.realmIndex >= 8 },
+  { id: 'zhuji', name: '筑基真人', desc: '突破筑基期', icon: '筑', check: () => player.realmIndex >= 9 },
+  { id: 'jindan', name: '金丹大道', desc: '突破金丹期', icon: '丹', check: () => player.realmIndex >= 10 },
+  { id: 'yuanying', name: '元婴老祖', desc: '突破元婴期', icon: '婴', check: () => player.realmIndex >= 11 },
+  { id: 'rich_100', name: '小有家财', desc: '拥有100灵石', icon: '财', check: () => player.spiritStones >= 100 },
+  { id: 'rich_1000', name: '腰缠万贯', desc: '拥有1000灵石', icon: '贯', check: () => player.spiritStones >= 1000 },
+  { id: 'kill_10', name: '初试身手', desc: '探索秘境10次', icon: '试', check: () => (player.stats.explore_count || 0) >= 10 },
+  { id: 'kill_50', name: '身经百战', desc: '探索秘境50次', icon: '战', check: () => (player.stats.explore_count || 0) >= 50 },
+  { id: 'old_50', name: '半百之年', desc: '年龄达到50岁', icon: '半', check: () => player.age >= 50 },
+  { id: 'old_100', name: '百岁寿星', desc: '年龄达到100岁', icon: '寿', check: () => player.age >= 100 },
+  { id: 'speed_2x', name: '加速修炼', desc: '激活任意倍速', icon: '速', check: () => player.speedMultiplier > 1 },
+  { id: 'auto_break', name: '自动突破', desc: '激活自动突破', icon: '破', check: () => player.autoBreak },
+  { id: 'full_hp', name: '气血充沛', desc: '气血上限达到500', icon: '血', check: () => player.maxHp >= 500 },
+  { id: 'strong_atk', name: '攻击力', desc: '攻击力达到100', icon: '攻', check: () => player.atk >= 100 },
 ]
 
 const unlockedCount = computed(() => {

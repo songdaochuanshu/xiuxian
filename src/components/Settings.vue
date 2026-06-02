@@ -1,6 +1,6 @@
 <template>
   <div class="panel">
-    <div class="panel-header">⚙️ 设置</div>
+    <div class="panel-header">设置</div>
     <div class="panel-body">
       <div class="setting-list">
         <div class="setting-item">
@@ -31,7 +31,7 @@
 
         <div v-if="qqGroup" class="setting-item" @click="joinQQGroup">
           <div class="setting-info">
-            <div class="setting-name">👥 加入QQ群</div>
+            <div class="setting-name">加入QQ群</div>
             <div class="setting-desc">{{ qqGroupName || '玩家交流群' }} · {{ qqGroup }}</div>
           </div>
           <span class="setting-arrow">→</span>
@@ -39,7 +39,7 @@
 
         <div class="setting-item" @click="exportData">
           <div class="setting-info">
-            <div class="setting-name">🔒 导出存档</div>
+            <div class="setting-name">导出存档</div>
             <div class="setting-desc">加密保存游戏数据到剪贴板</div>
           </div>
           <span class="setting-arrow">→</span>
@@ -47,7 +47,7 @@
 
         <div class="setting-item" @click="importData">
           <div class="setting-info">
-            <div class="setting-name">🔓 导入存档</div>
+            <div class="setting-name">导入存档</div>
             <div class="setting-desc">从剪贴板解密恢复游戏数据</div>
           </div>
           <span class="setting-arrow">→</span>
@@ -141,7 +141,7 @@ async function exportData() {
     }
 
     await navigator.clipboard.writeText(data.save)
-    game.addLog('🔒 存档已签名导出到剪贴板', 'success')
+    game.addLog('存档已签名导出到剪贴板', 'success')
   } catch (e) {
     console.error('导出失败:', e)
     game.addLog('导出失败: 网络错误', 'battle')
@@ -173,7 +173,7 @@ async function importData() {
       return
     }
 
-    game.addLog('✅ 存档验证通过，正在恢复...', 'success')
+    game.addLog('存档验证通过，正在恢复...', 'success')
 
     // 用服务器返回的权威数据更新本地
     if (data.player) {

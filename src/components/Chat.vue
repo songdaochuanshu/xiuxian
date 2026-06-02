@@ -1,7 +1,7 @@
 <template>
   <div class="panel">
     <div class="panel-header">
-      <span>💬 修仙界频道</span>
+      <span>修仙界频道</span>
       <span class="online-text">{{ recentUsers }}人在线</span>
     </div>
     <div class="panel-body">
