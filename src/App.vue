@@ -87,7 +87,7 @@ const achievementsRef = ref(null)
 
 // 只显示最近的日志
 const recentLogs = computed(() => {
-  return logExpanded.value ? game.logs.slice(0, 50) : game.logs.slice(0, 3)
+  return logExpanded.value ? game.logs.slice(0, 50) : game.logs.slice(0, 5)
 })
 
 // 新日志自动滚动
@@ -195,7 +195,7 @@ onUnmounted(() => {
   border-top: 1px solid var(--border);
   z-index: 60;
   transition: max-height 0.3s ease;
-  max-height: 80px;
+  max-height: 120px;
   overflow: hidden;
   backdrop-filter: blur(10px);
 }
@@ -266,7 +266,7 @@ onUnmounted(() => {
     width: 320px;
     border-radius: 6px;
     border: 1px solid var(--border);
-    max-height: 60px;
+    max-height: 100px;
   }
   .floating-log.expanded {
     max-height: 40vh;
