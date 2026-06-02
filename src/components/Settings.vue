@@ -99,8 +99,18 @@ function toggleAutoCultivate() {
 }
 
 function joinQQGroup() {
-  // QQ群链接
-  window.open(`https://qm.qq.com/q/${qqGroup.value}`, '_blank')
+  const groupNum = qqGroup.value
+  // 尝试打开QQ加群，失败则复制群号
+  const link = `mqqapi://card/show_pslcard?src_type=internal&source=sharecard&version=1&uin=${groupNum}`
+  window.location.href = link
+  // 3秒后如果没跳转，复制群号
+  setTimeout(() => {
+    navigator.clipboard.writeText(groupNum).then(() => {
+      game.addLog(`群号 ${groupNum} 已复制，打开QQ搜索加入`, 'success')
+    }).catch(() => {
+      game.addLog(`群号：${groupNum}，打开QQ搜索加入`, 'info')
+    })
+  }, 3000)
 }
 
 function copyUid() {
