@@ -101,6 +101,9 @@ import Settings from './components/Settings.vue'
 import Leaderboard from './components/Leaderboard.vue'
 import Chat from './components/Chat.vue'
 
+// 暴露给子组件使用
+const worldEventAPI = { postWorldEvent }
+
 const player = usePlayerStore()
 const game = useGameStore()
 const gameName = ref('凡人修仙传')
@@ -132,8 +135,33 @@ watch(() => game.logs.length, () => {
 
 let tickTimer = null
 let syncTimer = null
+let worldEventTimer = null
+let lastWorldEventId = 0
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxian-api.你的子域名.workers.dev'
+
+async function pollWorldEvents() {
+  try {
+    const url = lastWorldEventId > 0
+      ? `${API_URL}/api/world-events?after=${lastWorldEventId}`
+      : `${API_URL}/api/world-events`
+    const res = await fetch(url)
+    const data = await res.json()
+    if (data.events && data.events.length > 0) {
+      for (const evt of data.events) {
+        if (evt.id > lastWorldEventId) {
+          lastWorldEventId = evt.id
+          // 不显示自己的事件
+          if (evt.uid !== player.uid) {
+            game.addLog(evt.content, 'world')
+          }
+        }
+      }
+    }
+  } catch {}
+}
+
+
 
 async function syncPlayer() {
   if (!player.uid) return
@@ -168,6 +196,7 @@ function startTick() {
         const ageResult = player.ageUp()
         if (ageResult.dead) {
           game.addLog('天劫降临！寿元已尽...', 'battle')
+          game.postWorldEvent(player.uid, player.name, 'death', `💀 ${player.name} 寿元已尽，陨落于${player.realmName}...`)
           game.toggleCultivate()
           return
         }
@@ -190,6 +219,7 @@ function startTick() {
           if (r.success) {
             game.addLog(`✨ 自动突破！${r.realmName}`, 'breakthrough')
             game.triggerBreakthrough({ realmName: r.realmName, lifespanGain: r.lifespanGain })
+            game.postWorldEvent(player.uid, player.name, 'breakthrough', `✨ ${player.name} 突破成功，踏入 ${r.realmName}！`, player.realmName)
           } else if (!r.needItem) {
             game.addLog(`突破失败，损失 ${r.lostExp} 修为`, 'battle')
           }
@@ -213,12 +243,15 @@ onMounted(async () => {
   game.addLog('从此踏上修仙之路。', 'system')
   startTick()
   syncPlayer()
+  pollWorldEvents()
   syncTimer = setInterval(syncPlayer, 60000)
+  worldEventTimer = setInterval(pollWorldEvents, 5000)
 })
 
 onUnmounted(() => {
   if (tickTimer) clearInterval(tickTimer)
   if (syncTimer) clearInterval(syncTimer)
+  if (worldEventTimer) clearInterval(worldEventTimer)
 })
 </script>
 
@@ -300,6 +333,7 @@ onUnmounted(() => {
 .log-success { color: var(--success); }
 .log-info { color: var(--mp); }
 .log-breakthrough { color: #e0a0ff; text-shadow: 0 0 6px rgba(224,160,255,0.3); }
+.log-world { color: #ffd700; text-shadow: 0 0 4px rgba(255,215,0,0.3); }
 
 /* 底部导航栏 */
 .bottom-nav {

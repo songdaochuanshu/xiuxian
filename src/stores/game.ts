@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
+const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxian-api.你的子域名.workers.dev'
+
 export interface LogEntry {
   text: string
   type: string
@@ -43,9 +45,19 @@ export const useGameStore = defineStore('game', () => {
     setTimeout(() => { showBreakthrough.value = false }, 2500)
   }
 
+  async function postWorldEvent(uid: string, name: string, eventType: string, content: string, realm?: string) {
+    try {
+      await fetch(`${API_URL}/api/world-events`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid, name, eventType, content, realm }),
+      })
+    } catch {}
+  }
+
   return {
     cultivating, logs, showBreakthrough, breakthroughInfo, tickCount,
-    addLog, clearLog, toggleCultivate, triggerBreakthrough,
+    addLog, clearLog, toggleCultivate, triggerBreakthrough, postWorldEvent,
   }
 }, {
   persist: {
