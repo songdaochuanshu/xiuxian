@@ -86,6 +86,31 @@
     </div>
   </div>
 
+  <!-- 挂机收益弹窗 -->
+  <Teleport to="body">
+    <div v-if="showOfflineReward" class="offline-overlay" @click.self="showOfflineReward = false">
+      <div class="offline-box">
+        <div class="offline-title">🌙 离线挂机收益</div>
+        <div class="offline-desc">你离开了 {{ offlineData?.offlineMinutes || 0 }} 分钟</div>
+        <div class="offline-rewards">
+          <div class="offline-item">
+            <span class="offline-icon">📈</span>
+            <span>修为 +{{ offlineData?.gain || 0 }}</span>
+          </div>
+          <div v-if="offlineData?.randomEvent" class="offline-item">
+            <span class="offline-icon">{{ offlineData.randomEvent.type === 'item' ? '🎁' : '⚠️' }}</span>
+            <span>{{ offlineData.randomEvent.type === 'item' ? '获得 ' + offlineData.randomEvent.name : offlineData.randomEvent.desc }}</span>
+          </div>
+          <div v-if="offlineData?.reincarnation" class="offline-item offline-reincarnation">
+            <span class="offline-icon">🔄</span>
+            <span>寿元已尽，转世重修！加速 +0.1</span>
+          </div>
+        </div>
+        <button class="btn btn-full" @click="showOfflineReward = false">收下收益</button>
+      </div>
+    </div>
+  </Teleport>
+
   <!-- 弹窗/覆盖层 -->
   <BattlePanel />
   <BreakthroughOverlay />
@@ -120,6 +145,8 @@ import AbyssRank from './components/AbyssRank.vue'
 const player = usePlayerStore()
 const game = useGameStore()
 const gameName = ref('凡人修仙传')
+const showOfflineReward = ref(false)
+const offlineData = ref(null)
 
 const activeTab = ref('home')
 const logExpanded = ref(false)
@@ -195,7 +222,7 @@ async function pollWorldEvents() {
 async function syncPlayer() {
   if (!player.uid) return
   try {
-    await fetch(`${API_URL}/player/sync`, {
+    const res = await fetch(`${API_URL}/player/sync`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -209,6 +236,22 @@ async function syncPlayer() {
         speedExpireTime: player.speedExpireTime,
       }),
     })
+    const data = await res.json()
+
+    // 显示离线挂机收益
+    if (data.offline && data.offline.offline) {
+      const o = data.offline
+      showOfflineReward.value = true
+      offlineData.value = o
+      // 更新玩家本地数据
+      if (o.reincarnation) {
+        player.realmIndex = 0
+        player.exp = 0
+        player.age = 16
+        player.speedMultiplier = o.newSpeedMultiplier || player.speedMultiplier + 0.1
+        game.addLog(`🔄 寿元已尽，转世重修！加速 +0.1`, 'breakthrough')
+      }
+    }
   } catch (e) {}
 }
 
@@ -366,6 +409,59 @@ onUnmounted(() => {
 .log-info { color: var(--mp); }
 .log-breakthrough { color: #e0a0ff; text-shadow: 0 0 6px rgba(224,160,255,0.3); }
 .log-world { color: #ffd700; text-shadow: 0 0 4px rgba(255,215,0,0.3); }
+
+/* 挂机收益弹窗 */
+.offline-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 200;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.offline-box {
+  background: var(--panel);
+  border: 1px solid var(--gold-dim);
+  border-radius: 12px;
+  padding: 24px;
+  width: 90%;
+  max-width: 320px;
+  text-align: center;
+}
+.offline-title {
+  font-size: 18px;
+  color: var(--gold);
+  letter-spacing: 4px;
+  margin-bottom: 8px;
+  font-family: 'ZCOOL XiaoWei', serif;
+}
+.offline-desc {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+}
+.offline-rewards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.offline-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(212,168,83,0.05);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--text);
+}
+.offline-icon { font-size: 18px; }
+.offline-reincarnation {
+  background: rgba(224,64,64,0.1);
+  border: 1px solid rgba(224,64,64,0.3);
+}
 
 /* 底部导航栏 */
 .bottom-nav {
