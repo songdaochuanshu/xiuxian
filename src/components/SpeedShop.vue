@@ -46,7 +46,7 @@
 
       <!-- 提示 -->
       <div class="shop-tip">
-        💡 扫码付款后联系店主获取兑换码
+        💡 扫码付款后输入兑换码激活加速
       </div>
     </div>
   </div>
@@ -61,13 +61,13 @@
           <span class="pay-price">¥{{ selectedItem?.price }}</span>
         </div>
         <div class="pay-qrcode">
-          <!-- 请将收款码图片放到 public/qrcode.png -->
-          <div class="qrcode-placeholder">
+          <img v-if="qrcodeUrl" :src="qrcodeUrl" alt="收款码" class="qrcode-img" />
+          <div v-else class="qrcode-placeholder">
             <div class="qr-icon">📷</div>
-            <div class="qr-text">收款码</div>
-            <div class="qr-hint">请将收款码图片放到 public/qrcode.png</div>
+            <div class="qr-text">暂无收款码</div>
+            <div class="qr-hint">请联系管理员配置</div>
           </div>
-          <div class="pay-tip">微信扫码支付</div>
+          <div class="pay-tip">{{ payTip }}</div>
         </div>
         <div class="pay-actions">
           <button class="btn btn-full" @click="showPay = false">我已付款，去兑换</button>
@@ -78,16 +78,28 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { usePlayerStore } from '../stores/player.ts'
 import { useGameStore } from '../stores/game.ts'
 
 const player = usePlayerStore()
 const game = useGameStore()
+const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxian-api.你的子域名.workers.dev'
 
 const showPay = ref(false)
 const selectedItem = ref(null)
 const redeemCode = ref('')
+const qrcodeUrl = ref('')
+const payTip = ref('微信扫码支付')
+
+onMounted(async () => {
+  try {
+    const res = await fetch(`${API_URL}/game/config`)
+    const cfg = await res.json()
+    if (cfg.qrcodeUrl) qrcodeUrl.value = cfg.qrcodeUrl
+    if (cfg.payTip) payTip.value = cfg.payTip
+  } catch {}
+})
 
 const shopItems = [
   {

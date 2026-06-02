@@ -289,6 +289,8 @@ app.get('/game/config', async (c) => {
     return json({
       gameName: config.gameName || '凡人修仙传',
       announcement: config.announcement || '',
+      qrcodeUrl: config.qrcodeUrl || '',
+      payTip: config.payTip || '微信扫码支付',
     })
   } catch {
     return json({ gameName: '凡人修仙传', announcement: '' })

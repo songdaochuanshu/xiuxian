@@ -65,6 +65,26 @@
         </div>
       </div>
 
+      <!-- 付款码配置 -->
+      <div class="config-section">
+        <h3>💰 付款码</h3>
+        <div class="config-grid">
+          <div class="config-item full">
+            <label>收款码图片地址（支持微信/支付宝外链，如 sm.ms、图床等）</label>
+            <input v-model="config.qrcodeUrl" placeholder="https://xxx.com/qrcode.png" />
+          </div>
+          <div class="config-item">
+            <label>付款提示文字</label>
+            <input v-model="config.payTip" placeholder="微信扫码支付" />
+          </div>
+        </div>
+        <div v-if="config.qrcodeUrl" class="qrcode-preview">
+          <div class="preview-label">预览：</div>
+          <img :src="config.qrcodeUrl" alt="收款码预览" class="preview-img" @error="qrcodeError = true" />
+          <div v-if="qrcodeError" class="preview-error">图片加载失败，请检查地址</div>
+        </div>
+      </div>
+
       <!-- 保存提示 -->
       <div v-if="saveSuccess" class="save-success">✅ 保存成功！</div>
     </div>
@@ -85,11 +105,14 @@ const config = ref({
   price10x: 5,
   price2xPerm: 9.9,
   announcement: '',
+  qrcodeUrl: '',
+  payTip: '微信扫码支付',
 })
 
 const loading = ref(true)
 const saving = ref(false)
 const saveSuccess = ref(false)
+const qrcodeError = ref(false)
 
 async function load() {
   loading.value = true
@@ -185,5 +208,30 @@ onMounted(load)
   padding: 12px;
   background: rgba(64,192,128,0.1);
   border-radius: 6px;
+}
+
+.qrcode-preview {
+  margin-top: 12px;
+  padding: 12px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 6px;
+  text-align: center;
+}
+.preview-label {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+.preview-img {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 8px;
+  background: #fff;
+  padding: 8px;
+}
+.preview-error {
+  color: var(--danger);
+  font-size: 12px;
+  margin-top: 8px;
 }
 </style>
