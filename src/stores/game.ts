@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxian-api.你的子域名.workers.dev'
+const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxianv-api.songdaochuanshu.workers.dev'
 
 export interface LogEntry {
   text: string

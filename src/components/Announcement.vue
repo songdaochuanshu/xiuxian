@@ -12,7 +12,7 @@ import { ref, onMounted } from 'vue'
 const announcement = ref('')
 const expanded = ref(false)
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxian-api.你的子域名.workers.dev'
+const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxianv-api.songdaochuanshu.workers.dev'
 
 onMounted(async () => {
   try {
