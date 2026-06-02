@@ -12,7 +12,17 @@
           <option :value="2">2x</option>
           <option :value="5">5x</option>
           <option :value="10">10x</option>
+          <option :value="-1">自定义</option>
         </select>
+        <input
+          v-if="genForm.multiplier === -1"
+          v-model.number="customMultiplier"
+          type="number"
+          min="2"
+          max="100"
+          placeholder="输入倍数"
+          style="width:80px;margin-top:4px"
+        />
       </div>
       <div class="form-group">
         <label>时长</label>
@@ -104,6 +114,7 @@ const genForm = ref({
   duration: 0,
   count: 10,
 })
+const customMultiplier = ref(10)
 
 const totalPages = computed(() => Math.ceil(total.value / 20))
 
@@ -122,8 +133,14 @@ async function load() {
 async function generate() {
   generating.value = true
   try {
+    const multiplier = genForm.value.multiplier === -1 ? customMultiplier.value : genForm.value.multiplier
+    if (multiplier < 2) {
+      alert('倍数不能小于2')
+      generating.value = false
+      return
+    }
     const data = await adminApi.createCodes(
-      genForm.value.multiplier,
+      multiplier,
       genForm.value.duration,
       genForm.value.count
     )
