@@ -156,6 +156,9 @@ export const useBattleStore = defineStore('battle', () => {
     const player = usePlayerStore()
     const game = useGameStore()
 
+    // 记录探索次数
+    player.incrementStat('explore_count')
+
     if (player.hp <= player.maxHp * 0.2) {
       game.addLog('气血不足，强行探索恐有性命之忧！先打坐恢复吧。', 'battle')
       return { blocked: true }

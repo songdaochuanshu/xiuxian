@@ -19,6 +19,10 @@ export const usePlayerStore = defineStore('player', () => {
   const age = ref(16)
   const lifespan = ref(80)
   const items = ref<Record<string, number>>({ '疗伤丹': 3, '聚灵丹': 2 })
+  // 成就系统（独立存储，不污染背包）
+  const achievements = ref<Record<string, boolean>>({})
+  // 统计数据（探索次数等）
+  const stats = ref<Record<string, number>>({ explore_count: 0 })
   const isDead = ref(false)
   const autoBreak = ref(false)
   const speedMultiplier = ref(1)
@@ -248,11 +252,42 @@ export const usePlayerStore = defineStore('player', () => {
     }
   }
 
+  // 清理背包里的脏数据（成就/统计混入）
+  function cleanItems() {
+    for (const key of Object.keys(items.value)) {
+      if (key.startsWith('ach_') || key === 'explore_count') {
+        // 迁移到正确位置
+        if (key.startsWith('ach_')) {
+          achievements.value[key.replace('ach_', '')] = true
+        } else {
+          stats.value[key] = items.value[key]
+        }
+        delete items.value[key]
+      }
+    }
+  }
+
+  // 初始化时清理
+  cleanItems()
+
+  function isAchievementUnlocked(id: string) {
+    return achievements.value[id] === true
+  }
+
+  function unlockAchievement(id: string) {
+    achievements.value[id] = true
+  }
+
+  function incrementStat(key: string, amount: number = 1) {
+    stats.value[key] = (stats.value[key] || 0) + amount
+  }
+
   return {
     uid, name, realmIndex, hp, maxHp, mp, maxMp, exp, atk, def, gold, spiritStones, age, lifespan, items, isDead, autoBreak,
     realm, realmName, maxExp, cultivateSpeed, expPercent, hpPercent, mpPercent, canBreakthrough, isMaxRealm,
     cultivate, ageUp, breakthrough, rest, takeDamage, heal, useMp, addItem, removeItem, useItem, revive, reset,
     redeemSpeed, tickSpeed, speedMultiplier, speedExpireTime,
+    achievements, stats, isAchievementUnlocked, unlockAchievement, incrementStat,
   }
 }, {
   persist: true,
