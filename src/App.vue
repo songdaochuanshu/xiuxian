@@ -24,20 +24,23 @@
         <ItemBag />
       </div>
 
+      <!-- 💬 频道 -->
+      <div v-show="activeTab === 'chat'">
+        <Chat />
+      </div>
+
       <!-- 🏪 坊市 -->
       <div v-show="activeTab === 'shop'">
         <Shop />
         <SpeedShop />
       </div>
 
-      <!-- 🎖️ 成就 -->
-      <div v-show="activeTab === 'ach'">
-        <Achievements ref="achievementsRef" />
-        <DailyCheckIn />
-      </div>
+      <!-- 🎖️ 成就（移到设置里） -->
 
       <!-- ⚙️ 设置 -->
       <div v-show="activeTab === 'settings'">
+        <Achievements ref="achievementsRef" />
+        <DailyCheckIn />
         <Settings />
       </div>
     </div>
@@ -96,6 +99,7 @@ import Achievements from './components/Achievements.vue'
 import DailyCheckIn from './components/DailyCheckIn.vue'
 import Settings from './components/Settings.vue'
 import Leaderboard from './components/Leaderboard.vue'
+import Chat from './components/Chat.vue'
 
 const player = usePlayerStore()
 const game = useGameStore()
@@ -109,8 +113,8 @@ const achievementsRef = ref(null)
 const tabs = [
   { key: 'home', icon: '🏠', label: '修行' },
   { key: 'bag', icon: '📦', label: '背包' },
+  { key: 'chat', icon: '💬', label: '频道' },
   { key: 'shop', icon: '🏪', label: '坊市' },
-  { key: 'ach', icon: '🎖️', label: '成就' },
   { key: 'settings', icon: '⚙️', label: '设置' },
 ]
 

@@ -647,6 +647,64 @@ app.post('/api/leaderboard/submit', async (c) => {
   }
 })
 
+// ==================== 聊天室 ====================
+
+// 获取最近消息
+app.get('/api/chat/messages', async (c) => {
+  const db = c.env.DB
+  try {
+    const limit = Math.min(parseInt(c.req.query('limit') || '50'), 100)
+    const after = c.req.query('after')
+    const before = c.req.query('before')
+    let query = 'SELECT id, uid, name, content, realm, created_at FROM messages'
+    const params: any[] = []
+    if (after) {
+      query += ' WHERE id > ?'
+      params.push(parseInt(after))
+    } else if (before) {
+      query += ' WHERE id < ?'
+      params.push(parseInt(before))
+    }
+    query += ' ORDER BY id DESC LIMIT ?'
+    params.push(limit)
+    const rows = await db.prepare(query).bind(...params).all()
+    return json({ messages: (rows.results || []).reverse() })
+  } catch (err: any) {
+    return json({ messages: [], error: err.message })
+  }
+})
+
+// 发送消息
+app.post('/api/chat/send', async (c) => {
+  const db = c.env.DB
+  try {
+    const { uid, name, content, realm } = await c.req.json<{ uid: string; name: string; content: string; realm?: string }>()
+    if (!uid || !name || !content) return json({ error: '参数不完整' }, 400)
+    if (content.length > 100) return json({ error: '消息不能超过100字' }, 400)
+
+    // 频率限制：每人每3秒最多1条
+    const recent = await db.prepare(
+      'SELECT id FROM messages WHERE uid = ? AND created_at > ? ORDER BY id DESC LIMIT 1'
+    ).bind(uid, Date.now() - 3000).first()
+    if (recent) return json({ error: '说话太快了，休息一下~' }, 429)
+
+    // 保留最近500条消息
+    const count = await db.prepare('SELECT COUNT(*) as c FROM messages').first<{ c: number }>()
+    if (count && count.c > 500) {
+      await db.prepare('DELETE FROM messages WHERE id NOT IN (SELECT id FROM messages ORDER BY id DESC LIMIT 500)').run()
+    }
+
+    const now = Date.now()
+    await db.prepare(
+      'INSERT INTO messages (uid, name, content, realm, created_at) VALUES (?, ?, ?, ?, ?)'
+    ).bind(uid, name, content.trim(), realm || '', now).run()
+
+    return json({ success: true })
+  } catch (err: any) {
+    return json({ error: err.message }, 500)
+  }
+})
+
 // ==================== 存档导出/导入 ====================
 
 app.post('/api/save/export', async (c) => {
