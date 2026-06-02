@@ -7,7 +7,7 @@
     <div class="panel-body">
       <div class="achievement-list">
         <div
-          v-for="ach in achievements"
+          v-for="ach in visibleAchievements"
           :key="ach.id"
           class="achievement-item"
           :class="{ unlocked: isUnlocked(ach.id) }"
@@ -20,15 +20,20 @@
           <div v-if="isUnlocked(ach.id)" class="ach-check">✓</div>
         </div>
       </div>
+      <div v-if="achievements.length > 4" class="expand-btn" @click="expanded = !expanded">
+        {{ expanded ? '收起 ↑' : `展开全部 (${achievements.length}) ↓` }}
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { usePlayerStore } from '../stores/player.ts'
 
 const player = usePlayerStore()
+const expanded = ref(false)
+const SHOW_COUNT = 4
 
 const achievements = [
   { id: 'first_cultivate', name: '初入修途', desc: '第一次开始修炼', icon: '🌱', check: () => player.realmIndex >= 0 },
@@ -52,6 +57,15 @@ const achievements = [
 
 const unlockedCount = computed(() => {
   return achievements.filter(a => isUnlocked(a.id)).length
+})
+
+const visibleAchievements = computed(() => {
+  if (expanded.value) return achievements
+  // 默认显示前4个，优先显示已解锁的
+  const unlocked = achievements.filter(a => isUnlocked(a.id))
+  const locked = achievements.filter(a => !isUnlocked(a.id))
+  const merged = [...unlocked, ...locked]
+  return merged.slice(0, SHOW_COUNT)
 })
 
 function isUnlocked(id) {
@@ -117,5 +131,17 @@ defineExpose({ checkAchievements })
   color: var(--success);
   font-size: 16px;
   font-weight: bold;
+}
+
+.expand-btn {
+  text-align: center;
+  font-size: 12px;
+  color: var(--gold);
+  padding: 8px 0 2px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.expand-btn:hover {
+  opacity: 0.8;
 }
 </style>
