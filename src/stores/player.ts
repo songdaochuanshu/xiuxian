@@ -209,8 +209,9 @@ export const usePlayerStore = defineStore('player', () => {
   async function redeemSpeed(code: string) {
     try {
       code = code.trim().toUpperCase().replace(/\s/g, '')
-      const shortMatch = code.match(/^([ABC])([PT])-([A-Z2-9]{8})$/)
-      if (!shortMatch) {
+      // 支持加速码(AP/BT/CP等)和自动突破码(AB)
+      const validFormat = /^([ABC])([PT]|[B])-([A-Z2-9]{8})$/
+      if (!validFormat.test(code)) {
         return { success: false, error: '兑换码格式错误' }
       }
 
