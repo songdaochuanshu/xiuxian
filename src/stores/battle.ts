@@ -1,25 +1,29 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { ENEMIES, SECRET_REALMS } from '../data/enemies.js'
+import { ENEMIES, SECRET_REALMS, type Enemy } from '../data/enemies.js'
 import { ITEMS, TREASURE_POOL } from '../data/items.js'
 import { usePlayerStore } from './player.js'
 import { useGameStore } from './game.js'
 
+export interface BattleLogEntry {
+  text: string
+  type: string
+}
+
 export const useBattleStore = defineStore('battle', () => {
   const active = ref(false)
-  const enemy = ref(null)
+  const enemy = ref<Enemy | null>(null)
   const enemyHp = ref(0)
   const turn = ref(0)
-  const battleLog = ref([])
+  const battleLog = ref<BattleLogEntry[]>([])
 
   const enemyHpPercent = computed(() => enemy.value ? (enemyHp.value / enemy.value.hp) * 100 : 0)
 
-  function addBattleLog(text, type = 'info') {
+  function addBattleLog(text: string, type: string = 'info') {
     battleLog.value.push({ text, type })
   }
 
-  function startBattle(enemyData) {
-    const player = usePlayerStore()
+  function startBattle(enemyData: Enemy) {
     enemy.value = { ...enemyData }
     enemyHp.value = enemyData.hp
     turn.value = 0
@@ -31,7 +35,6 @@ export const useBattleStore = defineStore('battle', () => {
   function playerAttack() {
     if (!active.value || !enemy.value) return null
     const player = usePlayerStore()
-    const game = useGameStore()
     turn.value++
 
     const dmg = Math.max(1, player.atk - enemy.value.def + Math.floor(Math.random() * 10) - 5)
@@ -49,7 +52,6 @@ export const useBattleStore = defineStore('battle', () => {
   function playerSkill() {
     if (!active.value || !enemy.value) return null
     const player = usePlayerStore()
-    const game = useGameStore()
 
     if (!player.useMp(20)) {
       addBattleLog('灵力不足，无法施展灵技！')
@@ -69,14 +71,13 @@ export const useBattleStore = defineStore('battle', () => {
     return { dmg, ...result }
   }
 
-  function playerUseItem(itemName) {
+  function playerUseItem(itemName: string) {
     if (!active.value) return null
     const player = usePlayerStore()
     const item = ITEMS[itemName]
     if (!item || !item.effect) return null
     if (!player.removeItem(itemName)) return null
 
-    // 恢复类物品
     if (itemName === '疗伤丹') { player.heal(50) }
     else if (itemName === '大还丹') { player.hp = player.maxHp }
     else if (itemName === '聚灵丹') { player.mp = Math.min(player.maxMp, player.mp + 30) }
@@ -90,7 +91,6 @@ export const useBattleStore = defineStore('battle', () => {
 
   function playerFlee() {
     if (!active.value) return false
-    const player = usePlayerStore()
     const game = useGameStore()
 
     if (Math.random() < 0.6) {
@@ -99,7 +99,7 @@ export const useBattleStore = defineStore('battle', () => {
       return true
     } else {
       addBattleLog('逃跑失败！')
-      const result = enemyAttack()
+      enemyAttack()
       return false
     }
   }
@@ -108,9 +108,9 @@ export const useBattleStore = defineStore('battle', () => {
     const player = usePlayerStore()
     const game = useGameStore()
 
-    const dmg = Math.max(1, enemy.value.atk - player.def + Math.floor(Math.random() * 8) - 4)
+    const dmg = Math.max(1, (enemy.value?.atk ?? 0) - player.def + Math.floor(Math.random() * 8) - 4)
     player.takeDamage(dmg)
-    addBattleLog(`${enemy.value.name} 攻击你，造成 ${dmg} 点伤害！`, 'battle')
+    addBattleLog(`${enemy.value?.name} 攻击你，造成 ${dmg} 点伤害！`, 'battle')
 
     if (player.isDead) {
       addBattleLog('你被击败了...', 'battle')
@@ -122,14 +122,13 @@ export const useBattleStore = defineStore('battle', () => {
   function win() {
     const player = usePlayerStore()
     const game = useGameStore()
-    const e = enemy.value
+    const e = enemy.value!
 
     player.exp += e.exp
     player.gold += e.gold
     game.addLog(`击败 ${e.name}！获得 ${e.exp} 修为，${e.gold} 灵石。`, 'success')
 
-    // 掉落
-    const drops = []
+    const drops: string[] = []
     if (e.drops) {
       e.drops.forEach(drop => {
         if (Math.random() < drop.chance) {
@@ -142,7 +141,6 @@ export const useBattleStore = defineStore('battle', () => {
     }
 
     addBattleLog(`🎉 击败 ${e.name}！`, 'success')
-
     return { win: true, exp: e.exp, gold: e.gold, drops }
   }
 
@@ -172,16 +170,13 @@ export const useBattleStore = defineStore('battle', () => {
     const secret = available[Math.floor(Math.random() * available.length)]
     game.addLog(`你踏入了「${secret.name}」—— ${secret.desc}`, 'system')
 
-    // 随机遭遇
     const roll = Math.random()
     if (roll < 0.5) {
-      // 战斗
       const possibleEnemies = ENEMIES.filter(e => e.minRealm <= player.realmIndex)
       const e = possibleEnemies[Math.floor(Math.random() * possibleEnemies.length)]
       startBattle(e)
       return { type: 'battle', secret: secret.name }
     } else if (roll < 0.7) {
-      // 宝箱
       const item = TREASURE_POOL[Math.floor(Math.random() * TREASURE_POOL.length)]
       const count = Math.floor(Math.random() * 3) + 1
       player.addItem(item, count)
@@ -189,7 +184,6 @@ export const useBattleStore = defineStore('battle', () => {
       game.addLog(`🎉 发现宝箱！获得 ${itemDef?.icon || ''} ${item} ×${count}`, 'success')
       return { type: 'treasure', item, count }
     } else if (roll < 0.85) {
-      // 什么也没有
       const texts = [
         '你小心翼翼地探索了一番，什么也没发现。',
         '林中寂静，只有微风拂过树叶的沙沙声。',
@@ -199,7 +193,6 @@ export const useBattleStore = defineStore('battle', () => {
       game.addLog(texts[Math.floor(Math.random() * texts.length)], 'info')
       return { type: 'nothing' }
     } else {
-      // 危险
       const hpLoss = Math.floor(player.maxHp * 0.15)
       player.takeDamage(hpLoss)
       game.addLog(`⚠️ 误入禁制！受到 ${hpLoss} 点伤害。`, 'battle')

@@ -1,4 +1,19 @@
-export const ITEMS = {
+export interface PlayerProxy {
+  hp: number
+  maxHp: number
+  mp: number
+  maxMp: number
+  atk: number
+  gold: number
+}
+
+export interface ItemDef {
+  icon: string
+  desc: string
+  effect: ((p: PlayerProxy) => void) | null
+}
+
+export const ITEMS: Record<string, ItemDef> = {
   '疗伤丹': { icon: '🩹', desc: '恢复50气血', effect: (p) => { p.hp = Math.min(p.maxHp, p.hp + 50) } },
   '聚灵丹': { icon: '💎', desc: '恢复30灵力', effect: (p) => { p.mp = Math.min(p.maxMp, p.mp + 30) } },
   '蛇胆': { icon: '🟢', desc: '永久+2攻击', effect: (p) => { p.atk += 2 } },
@@ -11,4 +26,4 @@ export const ITEMS = {
   '回灵散': { icon: '💙', desc: '完全恢复灵力', effect: (p) => { p.mp = p.maxMp } },
 }
 
-export const TREASURE_POOL = ['疗伤丹', '聚灵丹', '蛇胆', '灵石袋', '大还丹', '回灵散']
+export const TREASURE_POOL: string[] = ['疗伤丹', '聚灵丹', '蛇胆', '灵石袋', '大还丹', '回灵散']

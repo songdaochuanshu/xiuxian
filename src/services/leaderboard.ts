@@ -1,12 +1,9 @@
 /**
- * 修仙排行榜 - 基于 Worker API + D1
+ * 修排行榜 - 基于 Worker API + D1
  */
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxian-api.你的子域名.workers.dev'
 
-/**
- * 获取排行榜
- */
 export async function fetchLeaderboard() {
   try {
     const res = await fetch(`${API_URL}/api/leaderboard`)
@@ -18,10 +15,15 @@ export async function fetchLeaderboard() {
   }
 }
 
-/**
- * 提交分数
- */
-export async function submitScore({ uid, name, realm, realmIndex, age, lifespan, gold }) {
+export async function submitScore({ uid, name, realm, realmIndex, age, lifespan, gold }: {
+  uid: string
+  name: string
+  realm: string
+  realmIndex: number
+  age: number
+  lifespan: number
+  gold: number
+}) {
   try {
     const res = await fetch(`${API_URL}/api/leaderboard/submit`, {
       method: 'POST',
@@ -29,7 +31,7 @@ export async function submitScore({ uid, name, realm, realmIndex, age, lifespan,
       body: JSON.stringify({ uid, name, realm, realmIndex, age, lifespan, gold }),
     })
     return await res.json()
-  } catch (err) {
+  } catch (err: any) {
     console.error('提交分数失败:', err)
     return { success: false, error: err.message }
   }

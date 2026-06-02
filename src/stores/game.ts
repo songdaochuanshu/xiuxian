@@ -1,14 +1,26 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
+export interface LogEntry {
+  text: string
+  type: string
+  time: string
+  id: number
+}
+
+export interface BreakthroughInfo {
+  realmName: string
+  lifespanGain: number
+}
+
 export const useGameStore = defineStore('game', () => {
   const cultivating = ref(false)
-  const logs = ref([])
+  const logs = ref<LogEntry[]>([])
   const showBreakthrough = ref(false)
-  const breakthroughInfo = ref(null)
+  const breakthroughInfo = ref<BreakthroughInfo | null>(null)
   const tickCount = ref(0)
 
-  function addLog(text, type = 'info') {
+  function addLog(text: string, type: string = 'info') {
     const time = new Date().toLocaleTimeString('zh-CN', {
       hour: '2-digit', minute: '2-digit', second: '2-digit',
     })
@@ -25,7 +37,7 @@ export const useGameStore = defineStore('game', () => {
     return cultivating.value
   }
 
-  function triggerBreakthrough(info) {
+  function triggerBreakthrough(info: BreakthroughInfo) {
     breakthroughInfo.value = info
     showBreakthrough.value = true
     setTimeout(() => { showBreakthrough.value = false }, 2500)
