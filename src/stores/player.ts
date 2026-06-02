@@ -14,7 +14,6 @@ export const usePlayerStore = defineStore('player', () => {
   const exp = ref(0)
   const atk = ref(10)
   const def = ref(5)
-  const gold = ref(0)
   const spiritStones = ref(0)
   const age = ref(16)
   const lifespan = ref(80)
@@ -107,7 +106,7 @@ export const usePlayerStore = defineStore('player', () => {
       exp.value = 0
 
       const goldReward = (realmIndex.value + 1) * 20
-      gold.value += goldReward
+      spiritStones.value += goldReward
 
       return {
         success: true,
@@ -176,7 +175,6 @@ export const usePlayerStore = defineStore('player', () => {
         get mp() { return mp.value }, set mp(v: number) { mp.value = v },
         get maxMp() { return maxMp.value }, set maxMp(v: number) { maxMp.value = v },
         get atk() { return atk.value }, set atk(v: number) { atk.value = v },
-        get gold() { return gold.value }, set gold(v: number) { gold.value = v },
         get spiritStones() { return spiritStones.value }, set spiritStones(v: number) { spiritStones.value = v },
       }
       itemDef.effect(proxy)
@@ -200,7 +198,7 @@ export const usePlayerStore = defineStore('player', () => {
     mp.value = 50; maxMp.value = 50
     exp.value = 0
     atk.value = 10; def.value = 5
-    gold.value = 0
+    spiritStones.value = 0
     age.value = 16; lifespan.value = 80
     items.value = { '疗伤丹': 3, '聚灵丹': 2 }
     isDead.value = false
@@ -283,7 +281,7 @@ export const usePlayerStore = defineStore('player', () => {
   }
 
   return {
-    uid, name, realmIndex, hp, maxHp, mp, maxMp, exp, atk, def, gold, spiritStones, age, lifespan, items, isDead, autoBreak,
+    uid, name, realmIndex, hp, maxHp, mp, maxMp, exp, atk, def, spiritStones, age, lifespan, items, isDead, autoBreak,
     realm, realmName, maxExp, cultivateSpeed, expPercent, hpPercent, mpPercent, canBreakthrough, isMaxRealm,
     cultivate, ageUp, breakthrough, rest, takeDamage, heal, useMp, addItem, removeItem, useItem, revive, reset,
     redeemSpeed, tickSpeed, speedMultiplier, speedExpireTime,

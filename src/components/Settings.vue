@@ -152,7 +152,6 @@ async function importData() {
       player.realmIndex = p.realmIndex
       player.exp = p.exp
       player.age = p.age
-      player.gold = p.gold
       player.spiritStones = p.spiritStones || 0
       player.speedMultiplier = p.speedMultiplier || 1
       player.speedExpireTime = p.speedExpireTime || 0

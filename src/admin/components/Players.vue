@@ -30,7 +30,7 @@
             <td>{{ p.realm || '-' }}</td>
             <td>{{ p.realm_index }}</td>
             <td>{{ p.age }}</td>
-            <td>{{ p.gold }}</td>
+            <td>{{ p.spirit_stones ?? p.gold }}</td>
             <td>
               <span v-if="p.speed_multiplier > 1" class="badge badge-success">
                 {{ p.speed_multiplier }}x
