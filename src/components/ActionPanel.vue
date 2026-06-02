@@ -72,6 +72,13 @@ function handleBreakthrough() {
     game.addLog(`天地感应，降下 ${result.goldReward} 灵石。`, 'info')
     game.triggerBreakthrough({ realmName: result.realmName, lifespanGain: result.lifespanGain })
     game.postWorldEvent(player.uid, player.name, 'breakthrough', `✨ ${player.name} 突破成功，踏入 ${result.realmName}！`, player.realmName)
+    // 突破任务进度
+    const breakTasks = []
+    if (player.realmIndex >= 9) breakTasks.push({ taskId: 'main_zhuji' })
+    if (player.realmIndex >= 12) breakTasks.push({ taskId: 'main_jindan' })
+    if (player.realmIndex >= 15) breakTasks.push({ taskId: 'main_yuanying' })
+    if (player.realmIndex >= 18) breakTasks.push({ taskId: 'main_huashen' })
+    if (breakTasks.length) game.updateTasks(breakTasks)
   } else {
     game.addLog(`💥 突破失败！走火入魔，损失 ${result.lostExp} 修为。`, 'battle')
     if (result.regress) {

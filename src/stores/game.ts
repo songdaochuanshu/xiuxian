@@ -55,9 +55,19 @@ export const useGameStore = defineStore('game', () => {
     } catch {}
   }
 
+  // 任务进度更新（由App.vue注入）
+  let _updateTasks: ((events: { taskId: string; amount?: number }[]) => Promise<void>) | null = null
+  function setTaskUpdater(fn: (events: { taskId: string; amount?: number }[]) => Promise<void>) {
+    _updateTasks = fn
+  }
+  async function updateTasks(events: { taskId: string; amount?: number }[]) {
+    if (_updateTasks) await _updateTasks(events)
+  }
+
   return {
     cultivating, logs, showBreakthrough, breakthroughInfo, tickCount,
     addLog, clearLog, toggleCultivate, triggerBreakthrough, postWorldEvent,
+    setTaskUpdater, updateTasks,
   }
 }, {
   persist: {

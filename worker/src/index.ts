@@ -647,6 +647,189 @@ app.post('/api/leaderboard/submit', async (c) => {
   }
 })
 
+// ==================== 任务系统 ====================
+
+// 获取今日日期字符串
+function getToday(): string {
+  return new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10)
+}
+
+// 获取玩家任务列表（含进度）
+app.get('/api/tasks', async (c) => {
+  const db = c.env.DB
+  try {
+    const uid = c.req.query('uid')
+    if (!uid) return json({ error: '缺少uid' }, 400)
+    const today = getToday()
+
+    // 先检查是否需要重置每日任务
+    const lastDaily = await db.prepare(
+      "SELECT date FROM player_tasks WHERE uid = ? AND task_id LIKE 'daily_%' ORDER BY id DESC LIMIT 1"
+    ).bind(uid).first<{ date: string }>()
+    if (lastDaily && lastDaily.date && lastDaily.date < today) {
+      await db.prepare("DELETE FROM player_tasks WHERE uid = ? AND task_id LIKE 'daily_%'").bind(uid).run()
+    }
+
+    // 获取所有任务
+    const tasks = await db.prepare('SELECT * FROM tasks ORDER BY type, sort_order').all()
+    // 获取玩家进度
+    const progress = await db.prepare(
+      'SELECT task_id, progress, status, date FROM player_tasks WHERE uid = ?'
+    ).bind(uid).all()
+
+    const progressMap: Record<string, any> = {}
+    for (const p of (progress.results || [])) {
+      progressMap[p.task_id as string] = p
+    }
+
+    const result = (tasks.results || []).map((t: any) => {
+      const p = progressMap[t.id]
+      const isDaily = t.type === 'daily'
+      let progressVal = p?.progress || 0
+      let status = p?.status || 'pending'
+
+      // 每日任务检查日期
+      if (isDaily && p?.date && p.date < today) {
+        progressVal = 0
+        status = 'pending'
+      }
+
+      return {
+        id: t.id,
+        type: t.type,
+        name: t.name,
+        desc: t.desc,
+        target: t.target,
+        rewardType: t.reward_type,
+        rewardValue: t.reward_value,
+        rewardAmount: t.reward_amount,
+        progress: Math.min(progressVal, t.target),
+        status: progressVal >= t.target ? (status === 'claimed' ? 'claimed' : 'completed') : status,
+      }
+    })
+
+    return json({ tasks: result, today })
+  } catch (err: any) {
+    return json({ error: err.message }, 500)
+  }
+})
+
+// 更新任务进度（累加）
+app.post('/api/tasks/progress', async (c) => {
+  const db = c.env.DB
+  try {
+    const { uid, taskId, amount } = await c.req.json<{ uid: string; taskId: string; amount?: number }>()
+    if (!uid || !taskId) return json({ error: '参数不完整' }, 400)
+    const add = amount || 1
+    const today = getToday()
+
+    // 检查任务类型
+    const task = await db.prepare('SELECT type FROM tasks WHERE id = ?').bind(taskId).first<{ type: string }>()
+    if (!task) return json({ error: '任务不存在' }, 404)
+
+    // 主线/支线任务不按日期去重
+    const dateKey = task.type === 'daily' ? today : ''
+
+    const existing = await db.prepare(
+      'SELECT id, progress, status FROM player_tasks WHERE uid = ? AND task_id = ? AND date = ?'
+    ).bind(uid, taskId, dateKey).first<{ id: number; progress: number; status: string }>()
+
+    if (existing) {
+      if (existing.status === 'claimed') return json({ success: true, skipped: true })
+      await db.prepare('UPDATE player_tasks SET progress = progress + ? WHERE id = ?').bind(add, existing.id).run()
+    } else {
+      await db.prepare(
+        'INSERT INTO player_tasks (uid, task_id, progress, status, date) VALUES (?, ?, ?, ?, ?)'
+      ).bind(uid, taskId, add, 'pending', dateKey).run()
+    }
+
+    return json({ success: true })
+  } catch (err: any) {
+    return json({ error: err.message }, 500)
+  }
+})
+
+// 领取奖励
+app.post('/api/tasks/claim', async (c) => {
+  const db = c.env.DB
+  try {
+    const { uid, taskId } = await c.req.json<{ uid: string; taskId: string }>()
+    if (!uid || !taskId) return json({ error: '参数不完整' }, 400)
+    const today = getToday()
+
+    const task = await db.prepare('SELECT * FROM tasks WHERE id = ?').bind(taskId).first<any>()
+    if (!task) return json({ error: '任务不存在' }, 404)
+
+    const dateKey = task.type === 'daily' ? today : ''
+    const pt = await db.prepare(
+      'SELECT id, progress, status FROM player_tasks WHERE uid = ? AND task_id = ? AND date = ?'
+    ).bind(uid, taskId, dateKey).first<any>()
+
+    if (!pt || pt.progress < task.target) return json({ error: '任务未完成' })
+    if (pt.status === 'claimed') return json({ error: '已领取' })
+
+    // 发放奖励
+    if (task.reward_type === 'spirit_stones') {
+      await db.prepare('UPDATE players SET spirit_stones = spirit_stones + ? WHERE uid = ?').bind(task.reward_amount, uid).run()
+    } else if (task.reward_type === 'item') {
+      // 查找物品id
+      const item = await db.prepare('SELECT id FROM items WHERE name = ?').bind(task.reward_value).first<{ id: number }>()
+      if (item) {
+        await db.prepare(`
+          INSERT INTO user_inventory (user_uid, item_id, quantity, created_at)
+          VALUES (?, ?, ?, ?)
+          ON CONFLICT(user_uid, item_id) DO UPDATE SET quantity = quantity + ?
+        `).bind(uid, item.id, task.reward_amount, Date.now(), task.reward_amount).run()
+      }
+    }
+
+    // 标记已领取
+    await db.prepare("UPDATE player_tasks SET status = 'claimed', claimed_at = ? WHERE id = ?").bind(Date.now(), pt.id).run()
+
+    return json({ success: true, reward: { type: task.reward_type, value: task.reward_value, amount: task.reward_amount } })
+  } catch (err: any) {
+    return json({ error: err.message }, 500)
+  }
+})
+
+// 批量更新任务进度（战斗胜利、购买等）
+app.post('/api/tasks/batch-progress', async (c) => {
+  const db = c.env.DB
+  try {
+    const { uid, events } = await c.req.json<{ uid: string; events: { taskId: string; amount?: number }[] }>()
+    if (!uid || !events) return json({ error: '参数不完整' }, 400)
+    const today = getToday()
+    const results: string[] = []
+
+    for (const evt of events) {
+      const task = await db.prepare('SELECT type, target FROM tasks WHERE id = ?').bind(evt.taskId).first<any>()
+      if (!task) continue
+      const add = evt.amount || 1
+      const dateKey = task.type === 'daily' ? today : ''
+
+      const existing = await db.prepare(
+        'SELECT id, progress, status FROM player_tasks WHERE uid = ? AND task_id = ? AND date = ?'
+      ).bind(uid, evt.taskId, dateKey).first<any>()
+
+      if (existing) {
+        if (existing.status !== 'claimed' && existing.progress < task.target) {
+          await db.prepare('UPDATE player_tasks SET progress = progress + ? WHERE id = ?').bind(add, existing.id).run()
+          results.push(evt.taskId)
+        }
+      } else {
+        await db.prepare(
+          'INSERT INTO player_tasks (uid, task_id, progress, status, date) VALUES (?, ?, ?, ?, ?)'
+        ).bind(uid, evt.taskId, add, 'pending', dateKey).run()
+        results.push(evt.taskId)
+      }
+    }
+
+    return json({ success: true, updated: results })
+  } catch (err: any) {
+    return json({ error: err.message }, 500)
+  }
+})
+
 // ==================== 世界公告 ====================
 
 // 获取最近世界事件

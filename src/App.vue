@@ -17,6 +17,7 @@
         <PlayerInfo />
         <PixelCharacter />
         <ActionPanel />
+        <Tasks ref="tasksRef" />
       </div>
 
       <!-- 📦 背包 -->
@@ -100,6 +101,7 @@ import DailyCheckIn from './components/DailyCheckIn.vue'
 import Settings from './components/Settings.vue'
 import Leaderboard from './components/Leaderboard.vue'
 import Chat from './components/Chat.vue'
+import Tasks from './components/Tasks.vue'
 
 const player = usePlayerStore()
 const game = useGameStore()
@@ -109,6 +111,7 @@ const activeTab = ref('home')
 const logExpanded = ref(false)
 const logBody = ref(null)
 const achievementsRef = ref(null)
+const tasksRef = ref(null)
 
 const tabs = [
   { key: 'home', icon: '🏠', label: '修行' },
@@ -136,6 +139,20 @@ let worldEventTimer = null
 let lastWorldEventId = 0
 
 const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxian-api.你的子域名.workers.dev'
+
+// 更新任务进度
+async function updateTaskProgress(events) {
+  if (!player.uid || !events.length) return
+  try {
+    await fetch(`${API_URL}/api/tasks/batch-progress`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid: player.uid, events }),
+    })
+    // 刷新任务列表
+    if (tasksRef.value) tasksRef.value.loadTasks()
+  } catch {}
+}
 
 async function pollWorldEvents() {
   try {
@@ -229,6 +246,9 @@ function startTick() {
 onMounted(async () => {
   // 加载境界配置
   await loadRealms()
+
+  // 注入任务更新函数
+  game.setTaskUpdater(updateTaskProgress)
 
   try {
     const res = await fetch(`${API_URL}/game/config`)

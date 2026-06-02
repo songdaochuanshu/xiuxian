@@ -141,6 +141,16 @@ export const useBattleStore = defineStore('battle', () => {
     }
 
     addBattleLog(`🎉 击败 ${e.name}！`, 'success')
+
+    // 更新任务进度
+    const game = useGameStore()
+    game.updateTasks([
+      { taskId: 'daily_battle_3' },
+      { taskId: 'daily_battle_10' },
+      { taskId: 'side_kill_50' },
+      { taskId: 'side_kill_200' },
+    ])
+
     return { win: true, exp: e.exp, stones: e.gold, drops }
   }
 
@@ -156,8 +166,13 @@ export const useBattleStore = defineStore('battle', () => {
     const player = usePlayerStore()
     const game = useGameStore()
 
-    // 记录探索次数
+    // 记录探索次数 + 任务进度
     player.incrementStat('explore_count')
+    game.updateTasks([
+      { taskId: 'daily_explore_5' },
+      { taskId: 'main_kill_10' },
+      { taskId: 'main_kill_100' },
+    ])
 
     if (player.hp <= player.maxHp * 0.2) {
       game.addLog('气血不足，强行探索恐有性命之忧！先打坐恢复吧。', 'battle')
