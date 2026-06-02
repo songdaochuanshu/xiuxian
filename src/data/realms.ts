@@ -10,7 +10,7 @@ export interface Realm {
   breakthrough_chance?: number
 }
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxianv-api.songdaochuanshu.workers.dev'
+const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxian-api.你的子域名.workers.dev'
 
 export const REALMS: Realm[] = [
   { name: '炼气期一层', maxExp: 100, hp: 100, mp: 50, atk: 10, def: 5, speed: 1, lifespan: 80 },
