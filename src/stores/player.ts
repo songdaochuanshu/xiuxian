@@ -227,6 +227,12 @@ export const usePlayerStore = defineStore('player', () => {
         return { success: false, error: data.error }
       }
 
+      // 自动突破码
+      if (data.autoBreak) {
+        autoBreak.value = true
+        return { success: true, autoBreak: true }
+      }
+
       speedMultiplier.value = data.multiplier
       if (data.duration === 0) {
         speedExpireTime.value = -1

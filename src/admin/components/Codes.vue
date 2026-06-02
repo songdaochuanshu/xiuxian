@@ -7,6 +7,13 @@
     <!-- 生成表单 -->
     <div class="gen-form">
       <div class="form-group">
+        <label>类型</label>
+        <select v-model="genForm.codeType">
+          <option value="speed">加速码</option>
+          <option value="auto_break">自动突破码</option>
+        </select>
+      </div>
+      <div v-if="genForm.codeType === 'speed'" class="form-group">
         <label>倍速</label>
         <select v-model="genForm.multiplier">
           <option :value="2">2x</option>
@@ -24,12 +31,15 @@
           style="width:80px;margin-top:4px"
         />
       </div>
-      <div class="form-group">
+      <div v-if="genForm.codeType === 'speed'" class="form-group">
         <label>时长</label>
         <select v-model="genForm.duration">
           <option :value="0">永久</option>
           <option :value="3600">1小时</option>
         </select>
+      </div>
+      <div v-if="genForm.codeType === 'auto_break'" class="form-group">
+        <label style="color:var(--gold);font-size:11px">⚡ 自动突破码（永久）</label>
       </div>
       <div class="form-group">
         <label>数量</label>
@@ -57,6 +67,7 @@
         <thead>
           <tr>
             <th>兑换码</th>
+            <th>类型</th>
             <th>倍速</th>
             <th>时长</th>
             <th>状态</th>
@@ -66,15 +77,16 @@
         </thead>
         <tbody>
           <tr v-if="loading">
-            <td colspan="6" style="text-align:center">加载中...</td>
+            <td colspan="7" style="text-align:center">加载中...</td>
           </tr>
           <tr v-else-if="!codes.length">
-            <td colspan="6" style="text-align:center">暂无数据</td>
+            <td colspan="7" style="text-align:center">暂无数据</td>
           </tr>
           <tr v-for="c in codes" :key="c.code">
             <td class="code-text" @click="copyCode(c.code)" title="点击复制">{{ c.code }}</td>
-            <td>{{ c.multiplier }}x</td>
-            <td>{{ c.duration === 0 ? '永久' : c.duration/3600+'小时' }}</td>
+            <td>{{ c.code_type === 'auto_break' ? '⚡自动突破' : '🚀加速' }}</td>
+            <td>{{ c.code_type === 'auto_break' ? '-' : c.multiplier + 'x' }}</td>
+            <td>{{ c.code_type === 'auto_break' ? '永久' : (c.duration === 0 ? '永久' : c.duration/3600+'小时') }}</td>
             <td>
               <span class="badge" :class="c.used ? 'badge-danger' : 'badge-success'">
                 {{ c.used ? '已使用' : '未使用' }}
@@ -110,6 +122,7 @@ const generating = ref(false)
 const generatedCodes = ref([])
 
 const genForm = ref({
+  codeType: 'speed',
   multiplier: 2,
   duration: 0,
   count: 10,
@@ -133,8 +146,8 @@ async function load() {
 async function generate() {
   generating.value = true
   try {
-    const multiplier = genForm.value.multiplier === -1 ? customMultiplier.value : genForm.value.multiplier
-    if (multiplier < 2) {
+    const multiplier = genForm.value.codeType === 'auto_break' ? 0 : (genForm.value.multiplier === -1 ? customMultiplier.value : genForm.value.multiplier)
+    if (genForm.value.codeType === 'speed' && multiplier < 2) {
       alert('倍数不能小于2')
       generating.value = false
       return
@@ -142,7 +155,8 @@ async function generate() {
     const data = await adminApi.createCodes(
       multiplier,
       genForm.value.duration,
-      genForm.value.count
+      genForm.value.count,
+      genForm.value.codeType
     )
     if (data.success) {
       generatedCodes.value = data.codes

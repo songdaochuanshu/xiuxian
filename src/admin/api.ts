@@ -26,10 +26,10 @@ export const adminApi = {
   getCodes: (page = 1, limit = 20, status = 'all') =>
     request(`/admin/codes?page=${page}&limit=${limit}&status=${status}`),
 
-  createCodes: (multiplier: number, duration: number, count: number) =>
+  createCodes: (multiplier: number, duration: number, count: number, codeType = 'speed') =>
     request('/admin/codes', {
       method: 'POST',
-      body: JSON.stringify({ multiplier, duration, count }),
+      body: JSON.stringify({ multiplier, duration, count, codeType }),
     }),
 
   deleteCode: (code: string) =>
