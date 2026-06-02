@@ -1,7 +1,7 @@
 <template>
   <div class="panel">
     <div class="panel-header">
-      <span>🗼 深渊天梯</span>
+      <span>深渊天梯</span>
       <button class="btn btn-sm" @click="load">刷新</button>
     </div>
     <div class="panel-body">

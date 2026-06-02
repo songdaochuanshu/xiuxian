@@ -8,7 +8,7 @@
             <div class="char-name" style="color:var(--gold)">{{ player.name }}</div>
             <div class="char-hp">HP: {{ player.hp }}</div>
           </div>
-          <div class="battle-vs-text">⚔️</div>
+          <div class="battle-vs-text">VS</div>
           <div class="battle-char">
             <div class="char-name" style="color:var(--danger)">{{ battle.enemy?.name }}</div>
             <div class="char-hp">HP: {{ battle.enemyHp }}</div>

@@ -1,7 +1,7 @@
 <template>
   <div class="panel">
     <div class="panel-header">
-      <span>📋 任务</span>
+      <span>任务</span>
       <span class="task-count">{{ completedCount }}/{{ tasks.length }}</span>
     </div>
     <div class="panel-body">
@@ -68,9 +68,9 @@ const loading = ref(true)
 const activeTab = ref('daily')
 
 const tabs = [
-  { key: 'daily', icon: '🔄', label: '每日' },
-  { key: 'main', icon: '📜', label: '主线' },
-  { key: 'side', icon: '📎', label: '支线' },
+  { key: 'daily', icon: '日', label: '每日' },
+  { key: 'main', icon: '主', label: '主线' },
+  { key: 'side', icon: '支', label: '支线' },
 ]
 
 const filteredTasks = computed(() => tasks.value.filter(t => t.type === activeTab.value))
@@ -81,9 +81,9 @@ function progressPercent(task) {
 }
 
 function rewardIcon(task) {
-  if (task.rewardType === 'spirit_stones') return '💎'
-  if (task.rewardType === 'item') return '📦'
-  return '🎁'
+  if (task.rewardType === 'spirit_stones') return '灵'
+  if (task.rewardType === 'item') return '物'
+  return '奖'
 }
 
 async function loadTasks() {
@@ -107,10 +107,10 @@ async function claimReward(task) {
       // 更新本地数据
       if (data.reward.type === 'spirit_stones') {
         player.spiritStones += data.reward.amount
-        game.addLog(`🎁 领取奖励：${data.reward.amount}灵石`, 'success')
+        game.addLog(`领取奖励：${data.reward.amount}灵石`, 'success')
       } else {
         player.addItem(data.reward.value, data.reward.amount)
-        game.addLog(`🎁 领取奖励：${data.reward.value} ×${data.reward.amount}`, 'success')
+        game.addLog(`领取奖励：${data.reward.value} ×${data.reward.amount}`, 'success')
       }
       task.status = 'claimed'
     } else {

@@ -1,7 +1,7 @@
 <template>
   <div class="panel">
     <div class="panel-header">
-      <span>🏆 天道排行榜</span>
+      <span>天道排行榜</span>
       <button class="btn btn-sm" :disabled="lb.submitting" @click="handleSubmit">
         {{ lb.submitting ? '上传中...' : '上传修为' }}
       </button>
@@ -19,7 +19,7 @@
           </span>
           <span class="rank-name">{{ entry.name }}</span>
           <span class="rank-realm">{{ entry.realm }}</span>
-          <span class="rank-score">⚔️ {{ entry.score }}</span>
+          <span class="rank-score">{{ entry.score }}</span>
         </div>
       </div>
     </div>
@@ -49,7 +49,7 @@ async function handleSubmit() {
     spiritStones: player.spiritStones,
   })
   if (result.success) {
-    game.addLog(`🏆 修为已上传天道！排名：第 ${result.rank} 名`, 'breakthrough')
+    game.addLog(`修为已上传天道！排名：第 ${result.rank} 名`, 'breakthrough')
   } else {
     game.addLog(`上传失败：${result.error}`, 'battle')
   }

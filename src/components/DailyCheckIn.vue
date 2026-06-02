@@ -1,7 +1,7 @@
 <template>
   <div v-if="show" class="panel">
     <div class="panel-header">
-      <span>📅 每日签到</span>
+      <span>每日签到</span>
       <span class="streak">连续 {{ streak }} 天</span>
     </div>
     <div class="panel-body">
@@ -48,13 +48,13 @@ const checkedToday = ref(false)
 const lastCheckIn = ref('')
 
 const rewards = {
-  1: { icon: '💎', text: '10灵石', stones: 10 },
-  2: { icon: '💎', text: '20灵石', stones: 20 },
+  1: { icon: '灵', text: '10灵石', stones: 10 },
+  2: { icon: '灵', text: '20灵石', stones: 20 },
   3: { icon: '🩹', text: '30灵石+疗伤丹', stones: 30, item: '疗伤丹' },
-  4: { icon: '💎', text: '40灵石', stones: 40 },
-  5: { icon: '🌟', text: '50灵石+破境丹', stones: 50, item: '破境丹' },
-  6: { icon: '💎', text: '60灵石', stones: 60 },
-  7: { icon: '👑', text: '100灵石+龙血丹', stones: 100, item: '龙血丹' },
+  4: { icon: '灵', text: '40灵石', stones: 40 },
+  5: { icon: '丹', text: '50灵石+破境丹', stones: 50, item: '破境丹' },
+  6: { icon: '灵', text: '60灵石', stones: 60 },
+  7: { icon: '丹', text: '100灵石+龙血丹', stones: 100, item: '龙血丹' },
 }
 
 function getReward(day) {
@@ -104,7 +104,7 @@ function handleCheckIn() {
     if (reward.item) {
       player.addItem(reward.item)
     }
-    game.addLog(`📅 签到成功！获得 ${reward.text}`, 'success')
+    game.addLog(`签到成功！获得 ${reward.text}`, 'success')
   }
 
   lastCheckIn.value = today

@@ -1,7 +1,7 @@
 <template>
   <div class="panel">
     <div class="panel-header">
-      <span>⚡ 修炼加速</span>
+      <span>修炼加速</span>
       <span v-if="player.speedMultiplier > 1" class="speed-badge">
         {{ player.speedMultiplier }}倍速中
       </span>
@@ -10,7 +10,7 @@
       <!-- 当前加速状态 -->
       <div v-if="player.speedMultiplier > 1" class="active-speed">
         <div class="speed-timer">
-          ⚡ {{ player.speedMultiplier }}倍速
+          {{ player.speedMultiplier }}倍速
           <span v-if="player.speedExpireTime > 0">
             剩余 {{ formatTime(player.speedExpireTime) }}
           </span>
@@ -46,7 +46,7 @@
 
       <!-- 提示 -->
       <div class="shop-tip">
-        💡 扫码付款后输入兑换码激活加速
+        扫码付款后输入兑换码激活加速
       </div>
     </div>
   </div>
@@ -63,7 +63,7 @@
         <div class="pay-qrcode">
           <img v-if="qrcodeUrl" :src="qrcodeUrl" alt="收款码" class="qrcode-img" />
           <div v-else class="qrcode-placeholder">
-            <div class="qr-icon">📷</div>
+            <div class="qr-icon">扫</div>
             <div class="qr-text">暂无收款码</div>
             <div class="qr-hint">请联系管理员配置</div>
           </div>
@@ -106,7 +106,7 @@ onMounted(async () => {
 const shopItems = [
   {
     id: 'speed_2x_1h',
-    icon: '🚀',
+    icon: '速',
     name: '2倍速',
     desc: '1小时',
     price: 1,
@@ -115,7 +115,7 @@ const shopItems = [
   },
   {
     id: 'speed_5x_1h',
-    icon: '⚡',
+    icon: '速',
     name: '5倍速',
     desc: '1小时',
     price: 3,
@@ -124,7 +124,7 @@ const shopItems = [
   },
   {
     id: 'speed_10x_1h',
-    icon: '🔥',
+    icon: '火',
     name: '10倍速',
     desc: '1小时',
     price: 5,
@@ -133,7 +133,7 @@ const shopItems = [
   },
   {
     id: 'speed_2x_perm',
-    icon: '💎',
+    icon: '石',
     name: '永久2倍速',
     desc: '永久生效',
     price: 9.9,
@@ -142,7 +142,7 @@ const shopItems = [
   },
   {
     id: 'auto_break',
-    icon: '⚡',
+    icon: '破',
     name: '自动突破',
     desc: '修为满自动突破',
     price: 6.6,
@@ -167,9 +167,9 @@ async function handleRedeem() {
   const result = await player.redeemSpeed(code)
   if (result.success) {
     if (result.autoBreak) {
-      game.addLog(`🎉 自动突破已激活！修为满时自动突破境界`, 'breakthrough')
+      game.addLog('自动突破已激活！修为满时自动突破境界', 'breakthrough')
     } else {
-      game.addLog(`🎉 兑换成功！${result.multiplier}倍速已激活`, 'success')
+      game.addLog(`兑换成功！${result.multiplier}倍速已激活`, 'success')
       if (result.duration > 0) {
         game.addLog(`持续时间：${formatTime(result.duration)}`, 'info')
       } else {

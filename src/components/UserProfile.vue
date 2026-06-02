@@ -2,7 +2,7 @@
   <Teleport to="body">
     <div v-if="show" class="profile-overlay">
       <div class="profile-box">
-        <div class="profile-title">⚔️ 修仙者档案</div>
+        <div class="profile-title">修仙者档案</div>
         <div class="profile-sub">取一个道号，踏上修仙之路</div>
 
         <div class="profile-form">

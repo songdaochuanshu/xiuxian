@@ -61,7 +61,7 @@ export const useBattleStore = defineStore('battle', () => {
     turn.value++
     const dmg = Math.max(1, (player.atk * 2) - enemy.value.def + Math.floor(Math.random() * 15))
     enemyHp.value -= dmg
-    addBattleLog(`✨ 施展灵技！对 ${enemy.value.name} 造成 ${dmg} 点伤害！`, 'success')
+    addBattleLog(`施展灵技！对 ${enemy.value.name} 造成 ${dmg} 点伤害！`, 'success')
 
     if (enemyHp.value <= 0) {
       return win()
@@ -140,7 +140,7 @@ export const useBattleStore = defineStore('battle', () => {
       })
     }
 
-    addBattleLog(`🎉 击败 ${e.name}！`, 'success')
+    addBattleLog(`击败 ${e.name}！`, 'success')
 
     // 更新任务进度
     game.updateTasks([
@@ -198,7 +198,7 @@ export const useBattleStore = defineStore('battle', () => {
       const count = Math.floor(Math.random() * 3) + 1
       player.addItem(item, count)
       const itemDef = ITEMS[item]
-      game.addLog(`🎉 发现宝箱！获得 ${itemDef?.icon || ''} ${item} ×${count}`, 'success')
+      game.addLog(`发现宝箱！获得 ${item} ×${count}`, 'success')
       return { type: 'treasure', item, count }
     } else if (roll < 0.85) {
       const texts = [
@@ -212,7 +212,7 @@ export const useBattleStore = defineStore('battle', () => {
     } else {
       const hpLoss = Math.floor(player.maxHp * 0.15)
       player.takeDamage(hpLoss)
-      game.addLog(`⚠️ 误入禁制！受到 ${hpLoss} 点伤害。`, 'battle')
+      game.addLog(`误入禁制！受到 ${hpLoss} 点伤害。`, 'battle')
       return { type: 'danger', hpLoss }
     }
   }

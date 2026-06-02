@@ -3,7 +3,7 @@
     <div v-if="lb.visible" class="lb-overlay" @click.self="lb.hide()">
       <div class="lb-box">
         <div class="lb-header">
-          <span class="lb-title">🏆 天道排行榜</span>
+          <span class="lb-title">天道排行榜</span>
           <span class="lb-close" @click="lb.hide()">✕</span>
         </div>
 
@@ -32,9 +32,9 @@
                 <div class="lb-realm">{{ entry.realm }}</div>
               </div>
               <div class="lb-stats">
-                <div class="lb-score">⚔️ {{ entry.score }}</div>
+                <div class="lb-score">{{ entry.score }}</div>
                 <div class="lb-detail">
-                  年龄 {{ entry.age }} · 💎 {{ entry.spirit_stones ?? entry.gold }}
+                  年龄 {{ entry.age }} · 灵石 {{ entry.spirit_stones ?? entry.gold }}
                 </div>
               </div>
             </div>
@@ -73,7 +73,7 @@ async function handleSubmit() {
   })
 
   if (result.success) {
-    game.addLog(`🏆 修为已上传天道！排名：第 ${result.rank} 名`, 'breakthrough')
+    game.addLog(`修为已上传天道！排名：第 ${result.rank} 名`, 'breakthrough')
   } else {
     game.addLog(`上传失败：${result.error}`, 'battle')
   }

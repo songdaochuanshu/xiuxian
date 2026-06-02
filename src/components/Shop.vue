@@ -1,8 +1,8 @@
 <template>
   <div class="panel">
     <div class="panel-header">
-      <span>🏪 坊市</span>
-      <span class="gold-display">💎 {{ player.spiritStones }}</span>
+      <span>坊市</span>
+      <span class="gold-display">灵石 {{ player.spiritStones }}</span>
     </div>
     <div class="panel-body">
       <div v-if="loading" class="loading">加载中...</div>
@@ -18,7 +18,7 @@
           <div class="item-icon">{{ item.icon }}</div>
           <div class="item-name">{{ item.name }}</div>
           <div class="item-desc">{{ item.desc }}</div>
-          <div class="item-price">💎 {{ item.price }}</div>
+          <div class="item-price">灵石 {{ item.price }}</div>
           <div v-if="item.stock_limit > 0" class="item-stock">
             限购 {{ item.stock_limit }} 个
           </div>

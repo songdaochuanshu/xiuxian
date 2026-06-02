@@ -1,16 +1,16 @@
 <template>
   <div class="panel">
     <div class="panel-header">
-      <span>🌙 离线挂机</span>
+      <span>离线挂机</span>
       <span v-if="isIdling" class="idle-badge">挂机中</span>
     </div>
     <div class="panel-body">
       <!-- 挂机状态 -->
       <div v-if="isIdling" class="idle-status">
         <div class="idle-timer">
-          <div class="timer-icon">🌙</div>
+          <div class="timer-icon">挂</div>
           <div class="timer-text">已挂机 {{ formatDuration(idleMinutes) }}</div>
-          <div class="timer-sub">预计收益 💎 {{ estimatedGain }} 修为</div>
+          <div class="timer-sub">预计收益 {{ estimatedGain }} 修为</div>
         </div>
         <div class="idle-bar">
           <div class="idle-fill" :style="{ width: Math.min(100, (idleMinutes / 720) * 100) + '%' }"></div>
@@ -20,7 +20,7 @@
 
       <!-- 未挂机 -->
       <div v-else class="idle-empty">
-        <div class="empty-icon">💤</div>
+        <div class="empty-icon">眠</div>
         <div class="empty-text">开启挂机后离线也能获得修为</div>
         <div class="empty-desc">每秒按修炼速度累积，最多12小时</div>
       </div>
@@ -31,12 +31,12 @@
           v-if="!isIdling"
           class="btn btn-full btn-idle"
           @click="startIdle"
-        >🌙 开始挂机</button>
+        >开始挂机</button>
         <button
           v-else
           class="btn btn-full btn-claim"
           @click="claimIdle"
-        >🎁 收取收益</button>
+        >收取收益</button>
       </div>
     </div>
   </div>
@@ -86,7 +86,7 @@ async function startIdle() {
       isIdling.value = true
       idleMinutes.value = 0
       estimatedGain.value = 0
-      game.addLog('🌙 开始离线挂机，退出游戏后修为也会增长！', 'success')
+      game.addLog('开始离线挂机，退出游戏后修为也会增长！', 'success')
       startTimer()
     } else {
       game.addLog(data.error || '开启失败', 'battle')
@@ -106,15 +106,15 @@ async function claimIdle() {
     const data = await res.json()
     if (data.success) {
       isIdling.value = false
-      game.addLog(`🌙 挂机收益：${data.minutes}分钟，修为 +${data.gain}`, 'success')
+      game.addLog(`挂机收益：${data.minutes}分钟，修为 +${data.gain}`, 'success')
       if (data.randomEvent) {
-        game.addLog(`🎁 挂机获得：${data.randomEvent.name}`, 'success')
+        game.addLog(`挂机获得：${data.randomEvent.name}`, 'success')
       }
       if (data.reincarnation) {
-        game.addLog('🔄 挂机期间寿元已尽，转世重修！加速 +0.1', 'breakthrough')
+        game.addLog('挂机期间寿元已尽，转世重修！加速 +0.1', 'breakthrough')
       }
       if (data.capped) {
-        game.addLog('⚠️ 已达12小时上限，建议收取后重新挂机', 'info')
+        game.addLog('已达12小时上限，建议收取后重新挂机', 'info')
       }
       // 刷新状态
       loadStatus()
