@@ -84,7 +84,7 @@ import { useGameStore } from '../stores/game.ts'
 
 const player = usePlayerStore()
 const game = useGameStore()
-const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxianv-api.songdaochuanshu.workers.dev'
+const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxian-api.你的子域名.workers.dev'
 
 const showPay = ref(false)
 const selectedItem = ref(null)

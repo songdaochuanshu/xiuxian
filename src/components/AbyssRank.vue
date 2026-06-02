@@ -29,7 +29,7 @@ import { ref, onMounted } from 'vue'
 import { usePlayerStore } from '../stores/player.ts'
 
 const player = usePlayerStore()
-const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxianv-api.songdaochuanshu.workers.dev'
+const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxian-api.你的子域名.workers.dev'
 
 const rankList = ref([])
 const loading = ref(true)

@@ -215,7 +215,7 @@ export const usePlayerStore = defineStore('player', () => {
         return { success: false, error: '兑换码格式错误' }
       }
 
-      const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxianv-api.songdaochuanshu.workers.dev'
+      const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxian-api.你的子域名.workers.dev'
       const res = await fetch(`${API_URL}/redeem`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
