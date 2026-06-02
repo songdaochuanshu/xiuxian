@@ -1,63 +1,39 @@
 <template>
-  <div class="stick-scene">
-    <!-- 背景 -->
+  <div class="pixel-scene">
+    <!-- 背景装饰 -->
     <div class="scene-bg">
       <div class="cloud c1">☁️</div>
       <div class="cloud c2">☁️</div>
       <div class="ground"></div>
     </div>
 
-    <!-- SVG 火柴人 -->
-    <svg class="stick-man" :class="animState" viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg">
-      <!-- 光环 -->
-      <circle v-if="showAura" cx="50" cy="28" r="26" class="aura" />
-
-      <!-- 头 -->
-      <circle cx="50" cy="28" r="12" class="head" />
-
-      <!-- 表情 -->
-      <template v-if="animState === 'dead'">
-        <line x1="45" y1="24" x2="49" y2="28" class="eye-line" />
-        <line x1="49" y1="24" x2="45" y2="28" class="eye-line" />
-        <line x1="51" y1="24" x2="55" y2="28" class="eye-line" />
-        <line x1="55" y1="24" x2="51" y2="28" class="eye-line" />
-        <path d="M44 34 Q50 30 56 34" class="mouth-sad" />
-      </template>
-      <template v-else-if="animState === 'battle'">
-        <circle cx="46" cy="26" r="1.5" class="eye-dot" />
-        <circle cx="54" cy="26" r="1.5" class="eye-dot" />
-        <path d="M44 33 Q50 37 56 33" class="mouth-battle" />
-      </template>
-      <template v-else>
-        <circle cx="46" cy="26" r="1.5" class="eye-dot" />
-        <circle cx="54" cy="26" r="1.5" class="eye-dot" />
-        <path d="M46 32 Q50 35 54 32" class="mouth" />
-      </template>
-
+    <!-- 像素小人 -->
+    <div class="character" :class="animState">
+      <!-- 头部 -->
+      <div class="head">
+        <div class="hair"></div>
+        <div class="face">
+          <div class="eye left"></div>
+          <div class="eye right"></div>
+          <div class="mouth"></div>
+        </div>
+      </div>
       <!-- 身体 -->
-      <line x1="50" y1="40" x2="50" y2="85" class="body-line" />
-
-      <!-- 左臂 -->
-      <line x1="50" y1="52" :x2="leftArmX" :y2="leftArmY" class="limb" />
-      <!-- 右臂 -->
-      <line x1="50" y1="52" :x2="rightArmX" :y2="rightArmY" class="limb" />
-
-      <!-- 左腿 -->
-      <line x1="50" y1="85" x2="35" y2="130" class="limb" />
-      <!-- 右腿 -->
-      <line x1="50" y1="85" x2="65" y2="130" class="limb" />
-
-      <!-- 脚 -->
-      <line x1="35" y1="130" x2="28" y2="135" class="limb" />
-      <line x1="65" y1="130" x2="72" y2="135" class="limb" />
-
-      <!-- 武器（战斗时） -->
-      <line v-if="animState === 'battle'" x1="70" y1="35" x2="90" y2="15" class="weapon" />
-    </svg>
-
-    <!-- 特效层 -->
-    <div v-if="showBreakthrough" class="particles">
-      <div v-for="i in 8" :key="i" class="particle" :style="particleStyle(i)">✦</div>
+      <div class="body">
+        <div class="arm left"></div>
+        <div class="arm right"></div>
+        <div class="torso"></div>
+      </div>
+      <!-- 腿 -->
+      <div class="legs">
+        <div class="leg left"></div>
+        <div class="leg right"></div>
+      </div>
+      <!-- 特效 -->
+      <div v-if="showAura" class="aura"></div>
+      <div v-if="showBreakthrough" class="breakthrough-particles">
+        <div v-for="i in 8" :key="i" class="particle" :style="particleStyle(i)"></div>
+      </div>
     </div>
 
     <!-- 状态文字 -->
@@ -83,8 +59,13 @@ const animState = computed(() => {
   return 'idle'
 })
 
-const showAura = computed(() => game.cultivating || game.showBreakthrough)
-const showBreakthrough = computed(() => game.showBreakthrough)
+const showAura = computed(() =>
+  game.cultivating || game.showBreakthrough
+)
+
+const showBreakthrough = computed(() =>
+  game.showBreakthrough
+)
 
 const statusLabel = computed(() => {
   switch (animState.value) {
@@ -96,23 +77,20 @@ const statusLabel = computed(() => {
   }
 })
 
-// 手臂动画坐标
-const leftArmX = computed(() => animState.value === 'cultivate' ? 30 : 32)
-const leftArmY = computed(() => animState.value === 'cultivate' ? 42 : 70)
-const rightArmX = computed(() => animState.value === 'cultivate' ? 70 : 68)
-const rightArmY = computed(() => animState.value === 'cultivate' ? 42 : 70)
-
 function particleStyle(i) {
   const angle = (i - 1) * 45
-  return { '--angle': `${angle}deg`, animationDelay: `${i * 0.1}s` }
+  return {
+    '--angle': `${angle}deg`,
+    animationDelay: `${i * 0.1}s`,
+  }
 }
 </script>
 
 <style scoped>
-.stick-scene {
+.pixel-scene {
   position: relative;
   width: 100%;
-  height: 180px;
+  height: 200px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -127,6 +105,7 @@ function particleStyle(i) {
   inset: 0;
   pointer-events: none;
 }
+
 .cloud {
   position: absolute;
   font-size: 16px;
@@ -139,6 +118,7 @@ function particleStyle(i) {
   from { transform: translateX(-30px); }
   to { transform: translateX(350px); }
 }
+
 .ground {
   position: absolute;
   bottom: 0;
@@ -148,106 +128,295 @@ function particleStyle(i) {
   border-top: 2px solid #2a2a3a;
 }
 
-/* SVG 火柴人 */
-.stick-man {
-  width: 80px;
-  height: 130px;
+/* 像素小人 */
+.character {
+  position: relative;
+  width: 48px;
+  height: 72px;
   z-index: 10;
-  margin-bottom: 28px;
+  margin-bottom: 30px;
+  transition: transform 0.3s;
 }
 
+/* 头部 */
 .head {
-  fill: var(--panel);
-  stroke: var(--gold);
-  stroke-width: 2;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
 }
-.eye-dot { fill: var(--text); }
-.eye-line { stroke: var(--danger); stroke-width: 2; stroke-linecap: round; }
-.mouth { fill: none; stroke: var(--text-dim); stroke-width: 1.5; stroke-linecap: round; }
-.mouth-sad { fill: none; stroke: var(--text-dim); stroke-width: 1.5; stroke-linecap: round; }
-.mouth-battle { fill: none; stroke: var(--danger); stroke-width: 1.5; stroke-linecap: round; }
 
-.body-line { stroke: var(--gold); stroke-width: 2.5; stroke-linecap: round; }
-.limb { stroke: var(--gold); stroke-width: 2; stroke-linecap: round; }
-.weapon { stroke: #ff6b6b; stroke-width: 2.5; stroke-linecap: round; }
+.hair {
+  position: absolute;
+  top: -4px;
+  left: -2px;
+  width: 28px;
+  height: 12px;
+  background: #2a1a0a;
+  border-radius: 4px 4px 0 0;
+  image-rendering: pixelated;
+}
 
+.face {
+  position: absolute;
+  top: 6px;
+  left: 2px;
+  width: 20px;
+  height: 18px;
+  background: #f5d0a9;
+  border-radius: 2px;
+}
+
+.eye {
+  position: absolute;
+  top: 5px;
+  width: 4px;
+  height: 4px;
+  background: #1a1a2e;
+  border-radius: 50%;
+}
+.eye.left { left: 3px; }
+.eye.right { right: 3px; }
+
+.mouth {
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 2px;
+  background: #c08060;
+  border-radius: 0 0 2px 2px;
+}
+
+/* 身体 */
+.body {
+  position: absolute;
+  top: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 24px;
+}
+
+.torso {
+  position: absolute;
+  left: 4px;
+  width: 20px;
+  height: 24px;
+  background: linear-gradient(180deg, #4a6fa5, #3a5a8a);
+  border-radius: 2px;
+  border: 1px solid #5a7fb5;
+}
+
+.arm {
+  position: absolute;
+  top: 2px;
+  width: 6px;
+  height: 20px;
+  background: #f5d0a9;
+  border-radius: 2px;
+  transform-origin: top center;
+}
+.arm.left { left: -4px; }
+.arm.right { right: -4px; }
+
+/* 腿 */
+.legs {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 20px;
+}
+
+.leg {
+  position: absolute;
+  bottom: 0;
+  width: 8px;
+  height: 20px;
+  background: #3a3a5a;
+  border-radius: 0 0 3px 3px;
+}
+.leg.left { left: 2px; }
+.leg.right { right: 2px; }
+
+/* 光环 */
 .aura {
-  fill: none;
-  stroke: var(--gold);
-  stroke-width: 1.5;
-  opacity: 0.4;
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 90px;
+  border-radius: 50%;
+  border: 2px solid rgba(212, 168, 83, 0.3);
   animation: auraPulse 2s ease-in-out infinite;
+  pointer-events: none;
 }
 @keyframes auraPulse {
-  0%, 100% { opacity: 0.2; r: 26; }
-  50% { opacity: 0.5; r: 30; }
+  0%, 100% { opacity: 0.3; transform: translateX(-50%) scale(1); }
+  50% { opacity: 0.6; transform: translateX(-50%) scale(1.1); }
+}
+
+/* 突破粒子 */
+.breakthrough-particles {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+}
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #e0a0ff;
+  border-radius: 50%;
+  animation: particleFly 1s ease-out infinite;
+  transform: rotate(var(--angle)) translateY(-20px);
+}
+@keyframes particleFly {
+  0% { opacity: 1; transform: rotate(var(--angle)) translateY(-20px); }
+  100% { opacity: 0; transform: rotate(var(--angle)) translateY(-60px); }
 }
 
 /* ========== 动画状态 ========== */
 
 /* 待机 */
-.stick-man.idle {
+.character.idle {
   animation: idleBounce 3s ease-in-out infinite;
 }
 @keyframes idleBounce {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+  50% { transform: translateY(-4px); }
+}
+
+.character.idle .arm.left {
+  animation: idleArmL 3s ease-in-out infinite;
+}
+.character.idle .arm.right {
+  animation: idleArmR 3s ease-in-out infinite 0.5s;
+}
+@keyframes idleArmL {
+  0%, 100% { transform: rotate(5deg); }
+  50% { transform: rotate(-5deg); }
+}
+@keyframes idleArmR {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
 }
 
 /* 修炼 */
-.stick-man.cultivate {
+.character.cultivate {
   animation: cultivateFloat 2s ease-in-out infinite;
 }
 @keyframes cultivateFloat {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-16px); }
+  50% { transform: translateY(-12px); }
+}
+
+.character.cultivate .arm.left {
+  animation: cultivateArmL 2s ease-in-out infinite;
+}
+.character.cultivate .arm.right {
+  animation: cultivateArmR 2s ease-in-out infinite;
+}
+@keyframes cultivateArmL {
+  0%, 100% { transform: rotate(30deg); }
+  50% { transform: rotate(40deg); }
+}
+@keyframes cultivateArmR {
+  0%, 100% { transform: rotate(-30deg); }
+  50% { transform: rotate(-40deg); }
+}
+
+.character.cultivate .eye {
+  height: 1px !important;
+  top: 7px;
 }
 
 /* 战斗 */
-.stick-man.battle {
+.character.battle {
   animation: battleShake 0.3s linear infinite;
 }
 @keyframes battleShake {
   0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  75% { transform: translateX(4px); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+.character.battle .arm.left {
+  animation: battlePunchL 0.6s ease-in-out infinite;
+}
+.character.battle .arm.right {
+  animation: battlePunchR 0.6s ease-in-out infinite 0.3s;
+}
+@keyframes battlePunchL {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-60deg) translateY(-10px); }
+}
+@keyframes battlePunchR {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(60deg) translateY(-10px); }
+}
+
+.character.battle .mouth {
+  width: 8px;
+  height: 4px;
+  background: #1a1a2e;
+  border-radius: 50%;
 }
 
 /* 突破 */
-.stick-man.breakthrough {
+.character.breakthrough {
   animation: breakthroughRise 1.5s ease-out;
 }
 @keyframes breakthroughRise {
   0% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-40px) scale(1.15); }
+  50% { transform: translateY(-40px) scale(1.2); }
   100% { transform: translateY(0) scale(1); }
 }
 
+.character.breakthrough .hair {
+  animation: breakthroughHair 1.5s ease-out;
+}
+@keyframes breakthroughHair {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.character.breakthrough .torso {
+  background: linear-gradient(180deg, #8a6fa5, #6a4a8a);
+  border-color: #e0a0ff;
+  box-shadow: 0 0 10px rgba(224, 160, 255, 0.5);
+}
+
 /* 死亡 */
-.stick-man.dead {
-  transform: rotate(90deg) translateX(20px);
-  opacity: 0.4;
+.character.dead {
+  transform: rotate(90deg);
+  opacity: 0.5;
   animation: none;
 }
 
-/* 粒子 */
-.particles {
-  position: absolute;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 15;
+.character.dead .eye {
+  width: 6px;
+  height: 1px;
+  top: 6px;
+  background: #1a1a2e;
 }
-.particle {
-  position: absolute;
-  font-size: 12px;
-  color: #e0a0ff;
-  animation: particleFly 1s ease-out infinite;
-  transform: rotate(var(--angle)) translateY(-24px);
-}
-@keyframes particleFly {
-  0% { opacity: 1; transform: rotate(var(--angle)) translateY(-24px); }
-  100% { opacity: 0; transform: rotate(var(--angle)) translateY(-60px); }
+.character.dead .eye.left { transform: rotate(45deg); }
+.character.dead .eye.right { transform: rotate(-45deg); }
+
+.character.dead .mouth {
+  width: 8px;
+  height: 2px;
+  background: transparent;
+  border-top: 2px solid #1a1a2e;
+  border-radius: 0;
 }
 
 /* 状态文字 */
@@ -259,7 +428,6 @@ function particleStyle(i) {
   letter-spacing: 2px;
   z-index: 20;
   transition: color 0.3s;
-  font-family: 'ZCOOL XiaoWei', serif;
 }
 .status-text.cultivate { color: var(--mp); }
 .status-text.battle { color: var(--danger); }
