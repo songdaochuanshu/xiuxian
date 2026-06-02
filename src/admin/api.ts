@@ -44,6 +44,9 @@ export const adminApi = {
   // 排行榜
   getLeaderboard: () => request('/api/leaderboard'),
 
+  // 境界
+  getRealms: () => request('/api/realms'),
+
   getConfig: () => request('/admin/config'),
 
   saveConfig: (config: Record<string, any>) =>

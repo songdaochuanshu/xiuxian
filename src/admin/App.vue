@@ -44,6 +44,7 @@
       <Players v-if="currentPage === 'players'" />
       <Leaderboard v-if="currentPage === 'leaderboard'" />
       <ShopManage v-if="currentPage === 'shop'" />
+      <Realms v-if="currentPage === 'realms'" />
       <Config v-if="currentPage === 'config'" />
     </div>
 
@@ -71,6 +72,7 @@ import Players from './components/Players.vue'
 import Leaderboard from './components/Leaderboard.vue'
 import Config from './components/Config.vue'
 import ShopManage from './components/ShopManage.vue'
+import Realms from './components/Realms.vue'
 
 const loggedIn = ref(false)
 const password = ref('')
@@ -83,6 +85,7 @@ const navItems = [
   { key: 'players', icon: '👥', label: '玩家' },
   { key: 'leaderboard', icon: '🏆', label: '排行榜' },
   { key: 'shop', icon: '🏪', label: '商店' },
+  { key: 'realms', icon: '🏔️', label: '境界' },
   { key: 'config', icon: '⚙️', label: '配置' },
 ]
 
