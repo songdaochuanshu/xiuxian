@@ -65,6 +65,21 @@
         </div>
       </div>
 
+      <!-- 社群配置 -->
+      <div class="config-section">
+        <h3>👥 社群配置</h3>
+        <div class="config-grid">
+          <div class="config-item">
+            <label>QQ群号</label>
+            <input v-model="config.qqGroup" placeholder="123456789" />
+          </div>
+          <div class="config-item">
+            <label>QQ群名称（选填）</label>
+            <input v-model="config.qqGroupName" placeholder="凡人修仙传交流群" />
+          </div>
+        </div>
+      </div>
+
       <!-- 付款码配置 -->
       <div class="config-section">
         <h3>💰 付款码</h3>
@@ -124,6 +139,8 @@ const config = ref({
   qrcodeUrl: '',
   qrcodeBase64: '',
   payTip: '微信扫码支付',
+  qqGroup: '',
+  qqGroupName: '',
 })
 
 const loading = ref(true)
