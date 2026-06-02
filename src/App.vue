@@ -153,7 +153,7 @@ let syncTimer = null
 let worldEventTimer = null
 let lastWorldEventId = 0
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxian-api.你的子域名.workers.dev'
+const API_URL = import.meta.env.VITE_API_URL || 'https://api.xiuxian.website'
 
 // 更新任务进度
 async function updateTaskProgress(events) {
