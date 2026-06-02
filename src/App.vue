@@ -58,6 +58,7 @@
 
   <!-- 突破动画 -->
   <BreakthroughOverlay />
+  <Leaderboard />
 </template>
 
 <script setup>
@@ -77,6 +78,7 @@ import UserProfile from './components/UserProfile.vue'
 import Achievements from './components/Achievements.vue'
 import DailyCheckIn from './components/DailyCheckIn.vue'
 import Settings from './components/Settings.vue'
+import Leaderboard from './components/Leaderboard.vue'
 
 const player = usePlayerStore()
 const game = useGameStore()
