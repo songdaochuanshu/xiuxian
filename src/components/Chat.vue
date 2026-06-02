@@ -2,7 +2,7 @@
   <div class="panel">
     <div class="panel-header">
       <span>💬 修仙界频道</span>
-      <span class="online-text">在线 {{ messages.length > 0 ? '活跃' : '冷清' }}</span>
+      <span class="online-text">{{ recentUsers }}人在线</span>
     </div>
     <div class="panel-body">
       <!-- 消息列表 -->
@@ -41,7 +41,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { usePlayerStore } from '../stores/player.ts'
 import { useGameStore } from '../stores/game.ts'
 
@@ -56,6 +56,13 @@ const sending = ref(false)
 const msgList = ref(null)
 let pollTimer = null
 let lastId = 0
+
+// 最近5分钟发言的去重人数
+const recentUsers = computed(() => {
+  const fiveMinAgo = Date.now() - 5 * 60 * 1000
+  const uids = new Set(messages.value.filter(m => m.created_at > fiveMinAgo).map(m => m.uid))
+  return uids.size
+})
 
 async function loadMessages() {
   try {
