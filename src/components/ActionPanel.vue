@@ -18,7 +18,9 @@
           突破境界
         </button>
         <button class="btn btn-danger" @click="handleExplore">探索秘境</button>
-        <button class="btn" @click="handleRest">调息恢复</button>
+        <button class="btn" :class="{ 'btn-disabled': restCooldownLeft > 0 }" :disabled="restCooldownLeft > 0" @click="handleRest">
+          {{ restCooldownLeft > 0 ? `调息(${restCooldownLeft}s)` : '调息恢复' }}
+        </button>
         <button class="btn btn-full" @click="lb.show()">天道排行榜</button>
       </div>
     </div>
@@ -26,6 +28,7 @@
 </template>
 
 <script setup>
+import { ref, onMounted, onUnmounted } from 'vue'
 import { usePlayerStore } from '../stores/player.ts'
 import { useGameStore } from '../stores/game.ts'
 import { useBattleStore } from '../stores/battle.ts'
@@ -93,9 +96,27 @@ function handleExplore() {
   battle.explore()
 }
 
+const restCooldownLeft = ref(0)
+let cooldownTimer = null
+
+function updateCooldown() {
+  restCooldownLeft.value = player.getRestCooldownLeft()
+}
+
 function handleRest() {
   if (game.cultivating) game.toggleCultivate()
   const result = player.rest()
+  if (!result) return // 冷却中
   game.addLog(`调息恢复，气血 +${result.hpGain}，灵力 +${result.mpGain}`, 'success')
+  updateCooldown()
 }
+
+onMounted(() => {
+  updateCooldown()
+  cooldownTimer = setInterval(updateCooldown, 1000)
+})
+
+onUnmounted(() => {
+  if (cooldownTimer) clearInterval(cooldownTimer)
+})
 </script>

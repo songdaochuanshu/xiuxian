@@ -130,12 +130,26 @@ export const usePlayerStore = defineStore('player', () => {
     }
   }
 
+  const lastRestTime = ref(0)
+  const restCooldown = 10 // 秒
+
   function rest() {
+    const now = Date.now()
+    const elapsed = (now - lastRestTime.value) / 1000
+    if (elapsed < restCooldown) {
+      return null // 冷却中
+    }
+    lastRestTime.value = now
     const hpGain = Math.floor(maxHp.value * 0.3)
     const mpGain = Math.floor(maxMp.value * 0.5)
     hp.value = Math.min(maxHp.value, hp.value + hpGain)
     mp.value = Math.min(maxMp.value, mp.value + mpGain)
     return { hpGain, mpGain }
+  }
+
+  function getRestCooldownLeft() {
+    const elapsed = (Date.now() - lastRestTime.value) / 1000
+    return Math.max(0, Math.ceil(restCooldown - elapsed))
   }
 
   function takeDamage(amount: number) {
@@ -290,7 +304,7 @@ export const usePlayerStore = defineStore('player', () => {
   return {
     uid, name, realmIndex, hp, maxHp, mp, maxMp, exp, atk, def, spiritStones, age, lifespan, items, isDead, autoBreak,
     realm, realmName, maxExp, cultivateSpeed, expPercent, hpPercent, mpPercent, canBreakthrough, isMaxRealm,
-    cultivate, ageUp, breakthrough, rest, takeDamage, heal, useMp, addItem, removeItem, useItem, revive, reset,
+    cultivate, ageUp, breakthrough, rest, getRestCooldownLeft, takeDamage, heal, useMp, addItem, removeItem, useItem, revive, reset,
     redeemSpeed, tickSpeed, speedMultiplier, speedExpireTime,
     achievements, stats, isAchievementUnlocked, unlockAchievement, incrementStat,
   }
