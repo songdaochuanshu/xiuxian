@@ -4,11 +4,29 @@
 
 import type { RealmConfig } from './types'
 
-/** 管理密码 */
-export const ADMIN_PASSWORD = '***'
+/**
+ * 敏感配置从数据库 configs 表读取
+ * admin 后台设置页面可修改
+ */
 
-/** 存档签名密钥（只在服务端，用户伪造不了） */
-export const SAVE_HMAC_KEY = 'xiuxia…cret'
+export async function getConfigValue(db: D1Database, key: string, fallback: string): Promise<string> {
+  try {
+    const row = await db.prepare("SELECT value FROM configs WHERE key = ?").bind(key).first<{ value: string }>()
+    return row?.value || fallback
+  } catch {
+    return fallback
+  }
+}
+
+/** 管理密码（数据库 configs.key = 'admin_password'） */
+export async function getAdminPassword(db: D1Database): Promise<string> {
+  return getConfigValue(db, 'admin_password', 'xiuxian2026')
+}
+
+/** 存档签名密钥（数据库 configs.key = 'save_hmac_key'） */
+export async function getSaveHmacKey(db: D1Database): Promise<string> {
+  return getConfigValue(db, 'save_hmac_key', 'xiuxian_save_v1_key')
+}
 
 /** 默认境界配置（数据库不可用时的 fallback） */
 export const DEFAULT_REALMS: RealmConfig[] = [

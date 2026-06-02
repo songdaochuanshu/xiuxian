@@ -8,7 +8,7 @@
 import { Hono } from 'hono'
 import type { Env, SaveData, SavePackage, PlayerRow } from '../types'
 import { json, base64Encode, base64Decode, hmacSign, hmacVerify, getRealmConfigFromDB, getMaxExpFromDB } from '../utils'
-import { SAVE_HMAC_KEY } from '../config'
+import { getSaveHmacKey } from '../config'
 
 export const saveRoutes = new Hono<{ Bindings: Env }>()
 
@@ -52,8 +52,9 @@ saveRoutes.post('/api/save/export', async (c) => {
       saveData.items[row.name as string] = row.quantity as number
     }
 
+    const hmacKey = await getSaveHmacKey(db)
     const payload = JSON.stringify(saveData)
-    const signature = await hmacSign(payload, SAVE_HMAC_KEY)
+    const signature = await hmacSign(payload, hmacKey)
     const exportPackage = base64Encode(JSON.stringify({ s: signature, d: saveData, v: 1 }))
 
     return json({ success: true, save: exportPackage })
@@ -73,7 +74,8 @@ saveRoutes.post('/api/save/import', async (c) => {
     try { pkg = JSON.parse(base64Decode(save)) } catch { return json({ error: '存档格式无效' }, 400) }
     if (!pkg.s || !pkg.d) return json({ error: '存档缺少签名或数据' }, 400)
 
-    const valid = await hmacVerify(JSON.stringify(pkg.d), pkg.s, SAVE_HMAC_KEY)
+    const hmacKey = await getSaveHmacKey(db)
+    const valid = await hmacVerify(JSON.stringify(pkg.d), pkg.s, hmacKey)
     if (!valid) return json({ error: '存档签名无效，数据可能被篡改' }, 403)
     if (pkg.d.uid !== uid) return json({ error: '存档UID不匹配' }, 403)
 

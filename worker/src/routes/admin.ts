@@ -21,14 +21,15 @@
 import { Hono } from 'hono'
 import type { Env } from '../types'
 import { json } from '../utils'
-import { ADMIN_PASSWORD } from '../config'
+import { getAdminPassword } from '../config'
 
 export const adminRoutes = new Hono<{ Bindings: Env }>()
 
-// 管理员认证中间件
+// 管理员认证中间件（密码从数据库读取）
 adminRoutes.use('/admin/*', async (c, next) => {
+  const password = await getAdminPassword(c.env.DB)
   const auth = c.req.header('Authorization')
-  if (auth !== `Bearer ${ADMIN_PASSWORD}`) return json({ error: '未授权' }, 401)
+  if (auth !== `Bearer ${password}`) return json({ error: '未授权' }, 401)
   await next()
 })
 
