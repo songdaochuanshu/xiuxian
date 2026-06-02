@@ -101,9 +101,6 @@ import Settings from './components/Settings.vue'
 import Leaderboard from './components/Leaderboard.vue'
 import Chat from './components/Chat.vue'
 
-// 暴露给子组件使用
-const worldEventAPI = { postWorldEvent }
-
 const player = usePlayerStore()
 const game = useGameStore()
 const gameName = ref('凡人修仙传')
