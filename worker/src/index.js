@@ -455,6 +455,65 @@ app.post('/api/lifespan/check', async (c) => {
   }
 })
 
+// ==================== 排行榜 ====================
+
+// 获取排行榜
+app.get('/api/leaderboard', async (c) => {
+  const db = c.env.DB
+  try {
+    const rows = await db.prepare(
+      'SELECT name, realm, realm_index, age, lifespan, gold, score, updated_at FROM leaderboard ORDER BY score DESC LIMIT 100'
+    ).all()
+    return json({ entries: rows.results || [] })
+  } catch (err) {
+    return json({ entries: [], error: err.message })
+  }
+})
+
+// 提交分数
+app.post('/api/leaderboard/submit', async (c) => {
+  const db = c.env.DB
+  try {
+    const { uid, name, realm, realmIndex, age, lifespan, gold } = await c.req.json()
+    if (!uid || !name) return json({ error: '参数不完整' }, 400)
+
+    // 计算分数
+    const realmScore = (realmIndex || 0) * 1000
+    const lifeEfficiency = ((lifespan - age) / lifespan) * 500
+    const goldScore = Math.log2(Math.max(1, gold || 0)) * 50
+    const score = Math.floor(realmScore + lifeEfficiency + goldScore)
+
+    const now = Date.now()
+
+    // 用 uid 去重，取最高分
+    const existing = await db.prepare('SELECT score FROM leaderboard WHERE uid = ?').bind(uid).first()
+    if (existing && score <= existing.score) {
+      // 没超过历史最高，不更新
+      const rank = await db.prepare('SELECT COUNT(*) as c FROM leaderboard WHERE score > ?').bind(existing.score).first()
+      return json({ success: true, rank: rank.c + 1, score: existing.score })
+    }
+
+    await db.prepare(`
+      INSERT INTO leaderboard (uid, name, realm, realm_index, age, lifespan, gold, score, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(uid) DO UPDATE SET
+        name = excluded.name,
+        realm = excluded.realm,
+        realm_index = excluded.realm_index,
+        age = excluded.age,
+        lifespan = excluded.lifespan,
+        gold = excluded.gold,
+        score = excluded.score,
+        updated_at = excluded.updated_at
+    `).bind(uid, name, realm, realmIndex, age, lifespan, gold, score, now).run()
+
+    const rank = await db.prepare('SELECT COUNT(*) as c FROM leaderboard WHERE score > ?').bind(score).first()
+    return json({ success: true, rank: rank.c + 1, score })
+  } catch (err) {
+    return json({ error: err.message }, 500)
+  }
+})
+
 // ==================== 存档导出/导入 ====================
 
 // Base64 工具（支持 UTF-8 中文）

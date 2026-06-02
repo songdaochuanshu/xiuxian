@@ -63,6 +63,7 @@ const game = useGameStore()
 
 async function handleSubmit() {
   const result = await lb.submit({
+    uid: player.uid,
     name: player.name,
     realm: player.realmName,
     realmIndex: player.realmIndex,
