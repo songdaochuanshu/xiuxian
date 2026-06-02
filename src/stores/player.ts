@@ -177,6 +177,7 @@ export const usePlayerStore = defineStore('player', () => {
         get maxMp() { return maxMp.value }, set maxMp(v: number) { maxMp.value = v },
         get atk() { return atk.value }, set atk(v: number) { atk.value = v },
         get gold() { return gold.value }, set gold(v: number) { gold.value = v },
+        get spiritStones() { return spiritStones.value }, set spiritStones(v: number) { spiritStones.value = v },
       }
       itemDef.effect(proxy)
       items.value[itemName]--

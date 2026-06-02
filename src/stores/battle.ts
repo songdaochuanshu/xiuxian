@@ -125,7 +125,7 @@ export const useBattleStore = defineStore('battle', () => {
     const e = enemy.value!
 
     player.exp += e.exp
-    player.gold += e.gold
+    player.spiritStones += e.gold
     game.addLog(`击败 ${e.name}！获得 ${e.exp} 修为，${e.gold} 灵石。`, 'success')
 
     const drops: string[] = []
@@ -141,7 +141,7 @@ export const useBattleStore = defineStore('battle', () => {
     }
 
     addBattleLog(`🎉 击败 ${e.name}！`, 'success')
-    return { win: true, exp: e.exp, gold: e.gold, drops }
+    return { win: true, exp: e.exp, stones: e.gold, drops }
   }
 
   function end() {
