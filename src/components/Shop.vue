@@ -45,12 +45,7 @@ async function loadShop() {
   loading.value = true
   try {
     const res = await fetch(`${API_URL}/shop/config`)
-    const items = await res.json()
-
-    // 获取物品详情
-    const itemsRes = await fetch(`${API_URL}/admin/monsters`) // 暂时用已有接口
-    // 简化：直接用前端配置
-    shopItems.value = items || []
+    shopItems.value = await res.json() || []
   } catch (e) {
     console.error('加载商店失败:', e)
   }

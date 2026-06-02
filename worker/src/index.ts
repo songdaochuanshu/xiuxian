@@ -308,8 +308,10 @@ app.get('/announcement', async (c) => {
 app.get('/shop/config', async (c) => {
   const db = c.env.DB
   try {
-    const row = await db.prepare("SELECT value FROM configs WHERE key = 'shop_items'").first<{ value: string }>()
-    return json(row ? JSON.parse(row.value) : [])
+    const rows = await db.prepare(
+      'SELECT si.id, si.item_id, si.price, si.stock_limit, i.name, i.icon, i.desc, i.type FROM shop_items si JOIN items i ON si.item_id = i.id ORDER BY si.id'
+    ).all()
+    return json(rows.results || [])
   } catch {
     return json([])
   }
