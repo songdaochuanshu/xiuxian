@@ -141,6 +141,28 @@ playerRoutes.post('/player/sync', async (c) => {
         last_heartbeat_time = excluded.last_heartbeat_time, last_active = excluded.last_active
     `).bind(uid, name, realmName, realmIndex, age, spiritStones || 0, speedMultiplier, speedExpireTime || 0, now, now, now).run()
 
+    // 自动同步排行榜（静默，不需要手动上传）
+    try {
+      const lifespan = (await getRealmConfigFromDB(db, realmIndex)).lifespan
+      const realmScore = realmIndex * 1000
+      const lifeEfficiency = ((lifespan - age) / lifespan) * 500
+      const goldScore = Math.log2(Math.max(1, spiritStones || 0)) * 50
+      const score = Math.floor(realmScore + lifeEfficiency + goldScore)
+
+      const existingScore = await db.prepare('SELECT score FROM leaderboard WHERE uid = ?').bind(uid).first<{ score: number }>()
+      if (!existingScore || score > existingScore.score) {
+        await db.prepare(`
+          INSERT INTO leaderboard (uid, name, realm, realm_index, age, lifespan, gold, score, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(uid) DO UPDATE SET
+            name = excluded.name, realm = excluded.realm, realm_index = excluded.realm_index,
+            age = excluded.age, lifespan = excluded.lifespan, gold = excluded.gold,
+            score = CASE WHEN excluded.score > leaderboard.score THEN excluded.score ELSE leaderboard.score END,
+            updated_at = CASE WHEN excluded.score > leaderboard.score THEN excluded.updated_at ELSE leaderboard.updated_at END
+        `).bind(uid, name, realmName, realmIndex, age, lifespan, spiritStones || 0, score, now).run()
+      }
+    } catch {}
+
     return json({ success: true, offline: offlineResult })
   } catch (err: any) {
     return json({ error: err.message }, 500)
