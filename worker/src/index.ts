@@ -93,11 +93,23 @@ const DEFAULT_REALMS: RealmConfig[] = [
   { name: '炼气期七层', speed: 7, lifespan: 120 },
   { name: '炼气期八层', speed: 9, lifespan: 130 },
   { name: '炼气期九层', speed: 12, lifespan: 140 },
-  { name: '筑基期', speed: 20, lifespan: 250 },
-  { name: '金丹期', speed: 50, lifespan: 500 },
-  { name: '元婴期', speed: 120, lifespan: 1000 },
+  { name: '筑基初期', speed: 18, lifespan: 200 },
+  { name: '筑基中期', speed: 25, lifespan: 230 },
+  { name: '筑基后期', speed: 35, lifespan: 260 },
+  { name: '金丹初期', speed: 50, lifespan: 350 },
+  { name: '金丹中期', speed: 70, lifespan: 420 },
+  { name: '金丹后期', speed: 100, lifespan: 500 },
+  { name: '元婴初期', speed: 140, lifespan: 650 },
+  { name: '元婴中期', speed: 200, lifespan: 800 },
+  { name: '元婴后期', speed: 300, lifespan: 1000 },
+  { name: '化神期', speed: 450, lifespan: 1500 },
+  { name: '炼虚期', speed: 700, lifespan: 2500 },
+  { name: '合体期', speed: 1100, lifespan: 4000 },
+  { name: '大乘期', speed: 1800, lifespan: 6000 },
+  { name: '渡劫期', speed: 3000, lifespan: 10000 },
+  { name: '飞升大圆满', speed: 5000, lifespan: 99999 },
 ]
-const DEFAULT_MAX_EXP = [100, 200, 400, 800, 1500, 3000, 6000, 12000, 24000, 50000, 200000, 1000000]
+const DEFAULT_MAX_EXP = [100, 200, 400, 800, 1500, 3000, 6000, 12000, 24000, 40000, 65000, 100000, 180000, 320000, 550000, 1000000, 2000000, 4000000, 8000000, 18000000, 40000000, 90000000, 200000000, 500000000]
 
 let cachedRealms: RealmRow[] | null = null
 let cacheTime = 0
