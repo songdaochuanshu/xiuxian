@@ -16,6 +16,7 @@
 
   <!-- 主应用 -->
   <div v-else class="admin-app">
+    <!-- 桌面侧边栏 -->
     <div class="sidebar">
       <h2>⚙️ 管理后台</h2>
       <div
@@ -29,13 +30,35 @@
       </div>
       <div class="nav-item nav-logout" @click="logout">🚪 退出</div>
     </div>
+
+    <!-- 内容区 -->
     <div class="main">
+      <!-- 移动端顶栏 -->
+      <div class="mobile-header">
+        <span class="mobile-title">⚙️ 管理后台</span>
+        <span class="mobile-logout" @click="logout">🚪</span>
+      </div>
+
       <Dashboard v-if="currentPage === 'dashboard'" />
       <Codes v-if="currentPage === 'codes'" />
       <Players v-if="currentPage === 'players'" />
       <Leaderboard v-if="currentPage === 'leaderboard'" />
       <ShopManage v-if="currentPage === 'shop'" />
       <Config v-if="currentPage === 'config'" />
+    </div>
+
+    <!-- 移动端底部导航 -->
+    <div class="mobile-nav">
+      <div
+        v-for="item in navItems"
+        :key="item.key"
+        class="mobile-nav-item"
+        :class="{ active: currentPage === item.key }"
+        @click="currentPage = item.key"
+      >
+        <span class="mobile-nav-icon">{{ item.icon }}</span>
+        <span class="mobile-nav-label">{{ item.label }}</span>
+      </div>
     </div>
   </div>
 </template>
@@ -186,10 +209,76 @@ if (savedToken) {
   overflow-y: auto;
 }
 
+/* 移动端顶栏（桌面隐藏） */
+.mobile-header {
+  display: none;
+}
+
+/* 移动端底部导航（桌面隐藏） */
+.mobile-nav {
+  display: none;
+}
+
 @media (max-width: 768px) {
-  .sidebar { width: 60px; }
-  .sidebar h2 { font-size: 12px; padding: 8px; }
-  .nav-item { font-size: 16px; text-align: center; padding: 10px 4px; }
-  .main { padding: 12px; }
+  .sidebar {
+    display: none;
+  }
+
+  .mobile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .mobile-title {
+    color: var(--gold);
+    font-size: 15px;
+    letter-spacing: 2px;
+  }
+  .mobile-logout {
+    cursor: pointer;
+    font-size: 18px;
+    padding: 4px;
+  }
+
+  .main {
+    padding: 12px 12px 80px;
+    overflow-x: hidden;
+  }
+
+  .mobile-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    z-index: 100;
+    padding: 6px 0;
+    padding-bottom: max(6px, env(safe-area-inset-bottom));
+  }
+  .mobile-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 0;
+    cursor: pointer;
+    transition: color 0.2s;
+    color: var(--text-dim);
+  }
+  .mobile-nav-item.active {
+    color: var(--gold);
+  }
+  .mobile-nav-icon {
+    font-size: 18px;
+  }
+  .mobile-nav-label {
+    font-size: 10px;
+  }
 }
 </style>
