@@ -39,7 +39,7 @@ const game = useGameStore()
 const shopItems = ref([])
 const loading = ref(true)
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxian-api.你的子域名.workers.dev'
+const API_URL = import.meta.env.VITE_API_URL || 'https://api.xiuxian.website'
 
 async function loadShop() {
   loading.value = true

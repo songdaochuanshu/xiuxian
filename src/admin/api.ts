@@ -2,7 +2,7 @@
  * 管理后台 API
  */
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://xiuxian-api.你的子域名.workers.dev'
+const API_URL = import.meta.env.VITE_API_URL || 'https://api.xiuxian.website'
 
 function getToken(): string {
   return localStorage.getItem('admin_token') || ''
