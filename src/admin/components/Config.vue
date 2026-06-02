@@ -74,6 +74,10 @@
             <input v-model="config.qqGroup" placeholder="123456789" />
           </div>
           <div class="config-item">
+            <label>QQ群加群链接</label>
+            <input v-model="config.qqGroupLink" placeholder="https://qm.qq.com/cgi-bin/qm/qr?k=xxx" />
+          </div>
+          <div class="config-item">
             <label>QQ群名称（选填）</label>
             <input v-model="config.qqGroupName" placeholder="凡人修仙传交流群" />
           </div>
@@ -140,6 +144,7 @@ const config = ref({
   qrcodeBase64: '',
   payTip: '微信扫码支付',
   qqGroup: '',
+  qqGroupLink: '',
   qqGroupName: '',
 })
 
