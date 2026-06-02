@@ -90,6 +90,11 @@ async function buyItem(item) {
       player.spiritStones = data.remaining
       player.addItem(data.item.name)
       game.addLog(`购买成功！获得 ${data.item.icon} ${data.item.name}`, 'success')
+      game.updateTasks([
+        { taskId: 'daily_buy_1' },
+        { taskId: 'side_buy_10' },
+        { taskId: 'side_buy_50' },
+      ])
     } else {
       game.addLog(`购买失败：${data.error}`, 'battle')
     }
