@@ -214,7 +214,7 @@ adminRoutes.get('/api/leaderboard', async (c) => {
   const db = c.env.DB
   try {
     const rows = await db.prepare(
-      'SELECT name, realm, realm_index, age, lifespan, spirit_stones as gold, score, updated_at FROM leaderboard ORDER BY score DESC LIMIT 100'
+      'SELECT name, realm, realm_index, age, lifespan, gold, score, updated_at FROM leaderboard ORDER BY score DESC LIMIT 100'
     ).all()
     return json({ entries: rows.results || [] })
   } catch (err: any) {
