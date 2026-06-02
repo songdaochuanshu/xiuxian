@@ -108,7 +108,10 @@ async function processOfflineGain(db, user) {
   let reincarnation = false
   let newRealmIndex = user.realm_index
   let newSpeedMultiplier = speedMultiplier
-  let newExp = (user.exp || 0) + totalGain
+  // 修为封顶（与客户端 REALMS 一致）
+  const maxExpArr = [100, 200, 400, 800, 1500, 3000, 6000, 12000, 24000, 50000, 200000, 1000000]
+  const expCap = maxExpArr[Math.min(user.realm_index, maxExpArr.length - 1)]
+  let newExp = Math.min((user.exp || 0) + totalGain, expCap)
 
   if (lifespanRemaining <= 0) {
     // 寿元耗尽，转世
@@ -306,7 +309,10 @@ app.post('/api/battle/settle', async (c) => {
     }
 
     // 更新玩家数据（修为 + 灵石）
-    const newExp = (user.exp || 0) + monster.exp_reward
+    // 修为封顶
+    const maxExpArr2 = [100, 200, 400, 800, 1500, 3000, 6000, 12000, 24000, 50000, 200000, 1000000]
+    const expCap2 = maxExpArr2[Math.min(user.realm_index, maxExpArr2.length - 1)]
+    const newExp = Math.min((user.exp || 0) + monster.exp_reward, expCap2)
     const newStones = (user.spirit_stones || 0) + stoneReward
 
     await db.prepare(`
@@ -540,11 +546,14 @@ app.post('/api/save/export', async (c) => {
       'SELECT ui.item_id, ui.quantity, i.name FROM user_inventory ui JOIN items i ON ui.item_id = i.id WHERE ui.user_uid = ?'
     ).bind(uid).all()
 
+    // 导出时修为也要封顶（防止历史脏数据）
+    const maxExpArr = [100, 200, 400, 800, 1500, 3000, 6000, 12000, 24000, 50000, 200000, 1000000]
+    const expCap = maxExpArr[Math.min(player.realm_index, maxExpArr.length - 1)]
     const saveData = {
       uid: player.uid,
       name: player.name,
       realmIndex: player.realm_index,
-      exp: player.exp || 0,
+      exp: Math.min(player.exp || 0, expCap),
       age: player.age,
       gold: player.gold || 0,
       spiritStones: player.spirit_stones || 0,
