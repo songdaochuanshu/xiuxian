@@ -451,6 +451,21 @@ app.post('/api/lifespan/check', async (c) => {
 
 // ==================== 存档导出/导入 ====================
 
+// Base64 工具（支持 UTF-8 中文）
+function base64Encode(str) {
+  const bytes = new TextEncoder().encode(str)
+  let binary = ''
+  for (const b of bytes) binary += String.fromCharCode(b)
+  return btoa(binary)
+}
+
+function base64Decode(b64) {
+  const binary = atob(b64)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+  return new TextDecoder().decode(bytes)
+}
+
 // HMAC 签名工具
 async function hmacSign(data, key) {
   const enc = new TextEncoder()
@@ -548,8 +563,8 @@ app.post('/api/save/export', async (c) => {
     const payload = JSON.stringify(saveData)
     const signature = await hmacSign(payload, SAVE_HMAC_KEY)
 
-    // 最终格式：base64(签名.数据)
-    const exportPackage = btoa(JSON.stringify({ s: signature, d: saveData, v: 1 }))
+    // 最终格式：base64(签名.数据) — 用 UTF-8 安全编码
+    const exportPackage = base64Encode(JSON.stringify({ s: signature, d: saveData, v: 1 }))
 
     return json({ success: true, save: exportPackage })
   } catch (err) {
@@ -567,7 +582,7 @@ app.post('/api/save/import', async (c) => {
     // 解析存档包
     let pkg
     try {
-      pkg = JSON.parse(atob(save))
+      pkg = JSON.parse(base64Decode(save))
     } catch {
       return json({ error: '存档格式无效' }, 400)
     }
