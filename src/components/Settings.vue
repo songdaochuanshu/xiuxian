@@ -16,7 +16,7 @@
         <div class="setting-item">
           <div class="setting-info">
             <div class="setting-name">游戏版本</div>
-            <div class="setting-desc">凡人修仙传 v1.0.0</div>
+            <div class="setting-desc">{{ gameName }} v1.0.0</div>
           </div>
           <span class="setting-value">Vue3 + Pinia</span>
         </div>
@@ -67,8 +67,14 @@ const player = usePlayerStore()
 const game = useGameStore()
 
 const autoCultivate = ref(false)
+const gameName = ref('凡人修仙传')
 
-onMounted(() => {
+onMounted(async () => {
+  try {
+    const res = await fetch(`${API_URL}/game/config`)
+    const cfg = await res.json()
+    if (cfg.gameName) gameName.value = cfg.gameName
+  } catch {}
   autoCultivate.value = localStorage.getItem('auto_cultivate') === 'true'
   if (autoCultivate.value && !game.cultivating) {
     game.toggleCultivate()

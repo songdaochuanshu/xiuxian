@@ -277,6 +277,24 @@ function validatePlayerData(data: SaveData, existingPlayer: PlayerRow | null): s
 
 app.get('/health', (c) => json({ status: 'ok' }))
 
+// 获取游戏公开配置（公告 + 游戏名等）
+app.get('/game/config', async (c) => {
+  const db = c.env.DB
+  try {
+    const rows = await db.prepare("SELECT key, value FROM configs").all<{ key: string; value: string }>()
+    const config: Record<string, string> = {}
+    for (const row of rows.results || []) {
+      config[row.key] = row.value
+    }
+    return json({
+      gameName: config.gameName || '凡人修仙传',
+      announcement: config.announcement || '',
+    })
+  } catch {
+    return json({ gameName: '凡人修仙传', announcement: '' })
+  }
+})
+
 app.get('/announcement', async (c) => {
   const db = c.env.DB
   try {
