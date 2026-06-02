@@ -37,9 +37,9 @@
 
 <script setup>
 import { ref, watch, nextTick } from 'vue'
-import { usePlayerStore } from '../stores/player.js'
-import { useGameStore } from '../stores/game.js'
-import { useBattleStore } from '../stores/battle.js'
+import { usePlayerStore } from '../stores/player.ts'
+import { useGameStore } from '../stores/game.ts'
+import { useBattleStore } from '../stores/battle.ts'
 
 const player = usePlayerStore()
 const game = useGameStore()

@@ -16,6 +16,6 @@
 </template>
 
 <script setup>
-import { useGameStore } from '../stores/game.js'
+import { useGameStore } from '../stores/game.ts'
 const game = useGameStore()
 </script>

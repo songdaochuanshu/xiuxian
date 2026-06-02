@@ -87,7 +87,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { adminApi } from '../api.js'
+import { adminApi } from '../api.ts'
 
 const items = ref([])
 const loading = ref(true)

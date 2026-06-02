@@ -79,8 +79,8 @@
 
 <script setup>
 import { ref } from 'vue'
-import { usePlayerStore } from '../stores/player.js'
-import { useGameStore } from '../stores/game.js'
+import { usePlayerStore } from '../stores/player.ts'
+import { useGameStore } from '../stores/game.ts'
 
 const player = usePlayerStore()
 const game = useGameStore()

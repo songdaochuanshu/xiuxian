@@ -43,6 +43,6 @@
 </template>
 
 <script setup>
-import { usePlayerStore } from '../stores/player.js'
+import { usePlayerStore } from '../stores/player.ts'
 const player = usePlayerStore()
 </script>

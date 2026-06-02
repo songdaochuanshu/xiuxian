@@ -62,8 +62,8 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import { usePlayerStore } from './stores/player.js'
-import { useGameStore } from './stores/game.js'
+import { usePlayerStore } from './stores/player.ts'
+import { useGameStore } from './stores/game.ts'
 import PlayerInfo from './components/PlayerInfo.vue'
 import ActionPanel from './components/ActionPanel.vue'
 import ItemBag from './components/ItemBag.vue'
