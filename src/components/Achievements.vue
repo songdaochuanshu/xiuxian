@@ -40,8 +40,8 @@ const achievements = [
   { id: 'yuanying', name: '元婴老祖', desc: '突破元婴期', icon: '👑', check: () => player.realmIndex >= 11 },
   { id: 'rich_100', name: '小有家财', desc: '拥有100灵石', icon: '💰', check: () => player.spiritStones >= 100 },
   { id: 'rich_1000', name: '腰缠万贯', desc: '拥有1000灵石', icon: '💎', check: () => player.spiritStones >= 1000 },
-  { id: 'kill_10', name: '初试身手', desc: '探索秘境10次', icon: '⚔️', check: () => (player.items.explore_count || 0) >= 10 },
-  { id: 'kill_50', name: '身经百战', desc: '探索秘境50次', icon: '🗡️', check: () => (player.items.explore_count || 0) >= 50 },
+  { id: 'kill_10', name: '初试身手', desc: '探索秘境10次', icon: '⚔️', check: () => (player.stats.explore_count || 0) >= 10 },
+  { id: 'kill_50', name: '身经百战', desc: '探索秘境50次', icon: '🗡️', check: () => (player.stats.explore_count || 0) >= 50 },
   { id: 'old_50', name: '半百之年', desc: '年龄达到50岁', icon: '🎂', check: () => player.age >= 50 },
   { id: 'old_100', name: '百岁寿星', desc: '年龄达到100岁', icon: '🎊', check: () => player.age >= 100 },
   { id: 'speed_2x', name: '加速修炼', desc: '激活任意倍速', icon: '🚀', check: () => player.speedMultiplier > 1 },
@@ -55,15 +55,14 @@ const unlockedCount = computed(() => {
 })
 
 function isUnlocked(id) {
-  return player.items[`ach_${id}`] === true
+  return player.isAchievementUnlocked(id)
 }
 
 // 检查并解锁成就
 function checkAchievements() {
   for (const ach of achievements) {
     if (!isUnlocked(ach.id) && ach.check()) {
-      player.items[`ach_${ach.id}`] = true
-      // 返回新解锁的成就
+      player.unlockAchievement(ach.id)
       return ach
     }
   }
