@@ -41,7 +41,7 @@ export const useLeaderboardStore = defineStore('leaderboard', () => {
     realmIndex: number
     age: number
     lifespan: number
-    gold: number
+    spiritStones: number
   }) {
     submitting.value = true
     error.value = null

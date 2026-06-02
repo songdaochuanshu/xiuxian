@@ -69,7 +69,7 @@ async function handleSubmit() {
     realmIndex: player.realmIndex,
     age: player.age,
     lifespan: player.lifespan,
-    gold: player.spiritStones,
+    spiritStones: player.spiritStones,
   })
 
   if (result.success) {
