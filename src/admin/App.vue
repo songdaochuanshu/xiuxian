@@ -66,6 +66,8 @@
 
 <script setup>
 import { ref } from 'vue'
+
+const API_URL = import.meta.env.VITE_API_URL || 'https://api.xiuxian.website'
 import Dashboard from './components/Dashboard.vue'
 import Codes from './components/Codes.vue'
 import Players from './components/Players.vue'
@@ -89,15 +91,31 @@ const navItems = [
   { key: 'config', icon: '⚙️', label: '配置' },
 ]
 
-function doLogin() {
+async function doLogin() {
   if (!password.value) {
     loginError.value = '请输入密码'
     return
   }
-  // 保存 token 到 localStorage
-  localStorage.setItem('admin_token', password.value)
-  loggedIn.value = true
-  loginError.value = ''
+  // 先验证密码是否正确
+  try {
+    const res = await fetch(`${API_URL}/admin/stats`, {
+      headers: { 'Authorization': `Bearer ${password.value}` },
+    })
+    if (res.status === 401) {
+      loginError.value = '密码错误，请重新输入'
+      return
+    }
+    if (!res.ok) {
+      loginError.value = '服务器错误，请稍后再试'
+      return
+    }
+    // 密码正确，保存并进入
+    localStorage.setItem('admin_token', password.value)
+    loggedIn.value = true
+    loginError.value = ''
+  } catch {
+    loginError.value = '网络错误，请检查连接'
+  }
 }
 
 function logout() {
@@ -106,11 +124,11 @@ function logout() {
   password.value = ''
 }
 
-// 检查是否已登录
+// 检查是否已登录（有保存的 token 则自动验证）
 const savedToken = localStorage.getItem('admin_token')
 if (savedToken) {
   password.value = savedToken
-  loggedIn.value = true
+  doLogin()
 }
 </script>
 
