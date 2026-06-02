@@ -2,7 +2,7 @@
   <div class="panel">
     <div class="panel-header">
       <span>乾坤袋</span>
-      <span style="font-size:12px">💎 {{ player.gold }}</span>
+      <span style="font-size:12px">💎 {{ player.spiritStones }}</span>
     </div>
     <div class="panel-body">
       <div v-if="itemList.length === 0" style="text-align:center;color:var(--text-dim);font-size:12px;padding:12px">
