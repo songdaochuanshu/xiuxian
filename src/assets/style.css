@@ -28,6 +28,16 @@ body {
   font-family: 'ZCOOL XiaoWei', 'Noto Serif SC', serif;
   min-height: 100vh;
   overflow-x: hidden;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+html {
+  overscroll-behavior: none;
 }
 
 /* 宣纸纹理背景 */
