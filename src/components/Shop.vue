@@ -59,6 +59,22 @@ async function buyItem(item) {
   }
 
   try {
+    // 先同步灵石到服务器
+    await fetch(`${API_URL}/player/sync`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        uid: player.uid,
+        name: player.name,
+        realm: player.realmName,
+        realmIndex: player.realmIndex,
+        age: player.age,
+        spiritStones: player.spiritStones,
+        speedMultiplier: player.speedMultiplier,
+        speedExpireTime: player.speedExpireTime,
+      }),
+    })
+
     const res = await fetch(`${API_URL}/api/shop/buy`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
