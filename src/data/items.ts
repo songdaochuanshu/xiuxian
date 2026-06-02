@@ -17,7 +17,7 @@ export const ITEMS: Record<string, ItemDef> = {
   '疗伤丹': { icon: '🩹', desc: '恢复50气血', effect: (p) => { p.hp = Math.min(p.maxHp, p.hp + 50) } },
   '聚灵丹': { icon: '💎', desc: '恢复30灵力', effect: (p) => { p.mp = Math.min(p.maxMp, p.mp + 30) } },
   '蛇胆': { icon: '🟢', desc: '永久+2攻击', effect: (p) => { p.atk += 2 } },
-  '灵石袋': { icon: '💰', desc: '获得50灵石', effect: (p) => { p.gold += 50 } },
+  '灵石袋': { icon: '💰', desc: '获得50灵石', effect: (p) => { p.spiritStones += 50 } },
   '筑基丹': { icon: '🔶', desc: '突破筑基必备', effect: null },
   '破境丹': { icon: '🌟', desc: '增加突破概率20%', effect: null },
   '金丹秘药': { icon: '🟡', desc: '突破金丹必备', effect: null },
