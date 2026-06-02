@@ -4,7 +4,7 @@
   <div class="container">
     <!-- 标题 -->
     <div class="title">
-      <h1>凡人修仙传</h1>
+      <h1>{{ gameName }}</h1>
       <div class="sub">逆 天 改 命 · 证 道 长 生</div>
     </div>
 
@@ -82,6 +82,7 @@ import Leaderboard from './components/Leaderboard.vue'
 
 const player = usePlayerStore()
 const game = useGameStore()
+const gameName = ref('凡人修仙传')
 
 const logExpanded = ref(false)
 const logBody = ref(null)
@@ -172,7 +173,14 @@ function startTick() {
   }, 1000)
 }
 
-onMounted(() => {
+onMounted(async () => {
+  // 加载游戏配置
+  try {
+    const res = await fetch(`${API_URL}/game/config`)
+    const cfg = await res.json()
+    if (cfg.gameName) gameName.value = cfg.gameName
+  } catch {}
+
   game.addLog('出生于凡人家庭，偶得残缺功法...', 'system')
   game.addLog('从此踏上修仙之路。', 'system')
   startTick()
