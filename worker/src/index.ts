@@ -293,6 +293,7 @@ app.get('/game/config', async (c) => {
       qrcodeBase64: config.qrcodeBase64 || '',
       payTip: config.payTip || '微信扫码支付',
       qqGroup: config.qqGroup || '',
+      qqGroupLink: config.qqGroupLink || '',
       qqGroupName: config.qqGroupName || '',
     })
   } catch {

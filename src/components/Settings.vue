@@ -77,6 +77,7 @@ const game = useGameStore()
 const autoCultivate = ref(false)
 const gameName = ref('凡人修仙传')
 const qqGroup = ref('')
+const qqGroupLink = ref('')
 const qqGroupName = ref('')
 
 onMounted(async () => {
@@ -85,6 +86,7 @@ onMounted(async () => {
     const cfg = await res.json()
     if (cfg.gameName) gameName.value = cfg.gameName
     if (cfg.qqGroup) qqGroup.value = cfg.qqGroup
+    if (cfg.qqGroupLink) qqGroupLink.value = cfg.qqGroupLink
     if (cfg.qqGroupName) qqGroupName.value = cfg.qqGroupName
   } catch {}
   autoCultivate.value = localStorage.getItem('auto_cultivate') === 'true'
@@ -99,18 +101,18 @@ function toggleAutoCultivate() {
 }
 
 function joinQQGroup() {
+  // 优先用后台配置的加群链接
+  if (qqGroupLink.value) {
+    window.open(qqGroupLink.value, '_blank')
+    return
+  }
+  // 没有配置链接则复制群号
   const groupNum = qqGroup.value
-  // 尝试打开QQ加群，失败则复制群号
-  const link = `mqqapi://card/show_pslcard?src_type=internal&source=sharecard&version=1&uin=${groupNum}`
-  window.location.href = link
-  // 3秒后如果没跳转，复制群号
-  setTimeout(() => {
-    navigator.clipboard.writeText(groupNum).then(() => {
-      game.addLog(`群号 ${groupNum} 已复制，打开QQ搜索加入`, 'success')
-    }).catch(() => {
-      game.addLog(`群号：${groupNum}，打开QQ搜索加入`, 'info')
-    })
-  }, 3000)
+  navigator.clipboard.writeText(groupNum).then(() => {
+    game.addLog(`群号 ${groupNum} 已复制，打开QQ搜索群加入`, 'success')
+  }).catch(() => {
+    game.addLog(`群号：${groupNum}，请打开QQ搜索加入`, 'info')
+  })
 }
 
 function copyUid() {
