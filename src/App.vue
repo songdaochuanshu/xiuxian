@@ -18,6 +18,7 @@
         <PixelCharacter />
         <ActionPanel />
         <Tasks ref="tasksRef" />
+        <Abyss />
       </div>
 
       <!-- 📦 背包 -->
@@ -102,6 +103,7 @@ import Settings from './components/Settings.vue'
 import Leaderboard from './components/Leaderboard.vue'
 import Chat from './components/Chat.vue'
 import Tasks from './components/Tasks.vue'
+import Abyss from './components/Abyss.vue'
 
 const player = usePlayerStore()
 const game = useGameStore()
