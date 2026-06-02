@@ -18,6 +18,10 @@
         <PixelCharacter />
         <ActionPanel />
         <Tasks ref="tasksRef" />
+      </div>
+
+      <!-- 🗼 深渊 -->
+      <div v-show="activeTab === 'abyss'">
         <Abyss />
       </div>
 
@@ -29,6 +33,12 @@
       <!-- 💬 频道 -->
       <div v-show="activeTab === 'chat'">
         <Chat />
+      </div>
+
+      <!-- 🏆 天榜 -->
+      <div v-show="activeTab === 'rank'">
+        <Leaderboard />
+        <AbyssRank />
       </div>
 
       <!-- 🏪 坊市 -->
@@ -104,6 +114,7 @@ import Leaderboard from './components/Leaderboard.vue'
 import Chat from './components/Chat.vue'
 import Tasks from './components/Tasks.vue'
 import Abyss from './components/Abyss.vue'
+import AbyssRank from './components/AbyssRank.vue'
 
 const player = usePlayerStore()
 const game = useGameStore()
@@ -118,8 +129,9 @@ const tasksRef = ref(null)
 const tabs = [
   { key: 'home', icon: '🏠', label: '修行' },
   { key: 'bag', icon: '📦', label: '背包' },
+  { key: 'abyss', icon: '🗼', label: '深渊' },
   { key: 'chat', icon: '💬', label: '频道' },
-  { key: 'shop', icon: '🏪', label: '坊市' },
+  { key: 'rank', icon: '🏆', label: '天榜' },
   { key: 'settings', icon: '⚙️', label: '设置' },
 ]
 

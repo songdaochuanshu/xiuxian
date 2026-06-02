@@ -46,26 +46,7 @@
         >{{ canClaimDaily ? '领取' : '已领取' }}</button>
       </div>
 
-      <!-- 深渊排行榜 -->
-      <div class="abyss-rank">
-        <div class="rank-header" @click="showRank = !showRank">
-          <span>🏆 深渊天梯</span>
-          <span class="rank-toggle">{{ showRank ? '收起 ↑' : '展开 ↓' }}</span>
-        </div>
-        <div v-if="showRank" class="rank-list">
-          <div v-if="rankList.length === 0" class="rank-empty">暂无数据</div>
-          <div v-for="(r, i) in rankList" :key="r.uid" class="rank-item" :class="{ 'rank-self': r.uid === player.uid }">
-            <span class="rank-pos">
-              <span v-if="i === 0">🥇</span>
-              <span v-else-if="i === 1">🥈</span>
-              <span v-else-if="i === 2">🥉</span>
-              <span v-else>{{ i + 1 }}</span>
-            </span>
-            <span class="rank-name">{{ r.name }}</span>
-            <span class="rank-layer">第{{ r.abyss_max_layer }}层</span>
-          </div>
-        </div>
-      </div>
+
     </div>
   </div>
 </template>
@@ -87,8 +68,7 @@ const canClaimDaily = ref(false)
 const fighting = ref(false)
 const damageDealt = ref(0)
 const fightPercent = ref(0)
-const showRank = ref(false)
-const rankList = ref([])
+
 
 function formatNum(n) {
   if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M'
@@ -109,13 +89,7 @@ async function loadAbyss() {
   } catch {}
 }
 
-async function loadRank() {
-  try {
-    const res = await fetch(`${API_URL}/api/abyss/leaderboard`)
-    const data = await res.json()
-    rankList.value = data.entries || []
-  } catch {}
-}
+
 
 async function fightBoss() {
   if (fighting.value) return
@@ -186,7 +160,6 @@ async function claimDaily() {
 
 onMounted(() => {
   loadAbyss()
-  loadRank()
 })
 </script>
 

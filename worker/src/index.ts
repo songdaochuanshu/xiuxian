@@ -649,19 +649,32 @@ app.post('/api/leaderboard/submit', async (c) => {
 
 // ==================== 镇妖塔（深渊）====================
 
+// Boss名字库
+const BOSS_NAMES = [
+  '妖鼠王', '毒蛇精', '山贼头领', '黑熊妖', '九尾妖狐',
+  '血魔弟子', '幽冥鬼将', '千年树妖', '墨蛟', '远古龙魂',
+  '噬魂蝠王', '赤炎虎', '冰霜巨蟒', '暗影刺客', '铁甲龟将',
+  '雷翼鹰', '毒蝎皇后', '石魔巨人', '亡灵骑士', '地狱犬',
+  '炎魔领主', '寒冰巫妖', '雷霆蜥蜴', '暗夜狼王', '血色修罗',
+  '天魔将', '堕落天使', '混沌之主', '虚空行者', '灭世龙神',
+  '太古凶兽', '万年妖皇', '仙界叛将', '混沌魔尊', '天道之敌',
+]
+
 // 计算Boss属性（指数递增）
 function getAbyssBoss(layer: number) {
   const baseHp = 200
   const baseAtk = 30
   const baseDef = 15
-  const mult = Math.pow(1.15, layer - 1) // 每层15%递增
+  const mult = Math.pow(1.15, layer - 1)
+  const nameIdx = (layer - 1) % BOSS_NAMES.length
+  const star = Math.floor((layer - 1) / BOSS_NAMES.length)
+  const starTag = star > 0 ? '★'.repeat(star) : ''
   return {
     layer,
-    name: `第${layer}层守卫`,
+    name: `${BOSS_NAMES[nameIdx]}${starTag}`,
     hp: Math.floor(baseHp * mult),
     atk: Math.floor(baseAtk * mult),
     def: Math.floor(baseDef * mult),
-    // 每10层免疫低级控制，每50层降低闪避
     immuneControl: layer >= 10,
     reduceDodge: layer >= 50 ? Math.min(0.5, (layer - 50) * 0.01) : 0,
   }
@@ -744,6 +757,18 @@ app.post('/api/abyss/challenge', async (c) => {
       const newMax = Math.max(player.abyss_max_layer || 1, newLayer)
 
       await db.prepare('UPDATE players SET abyss_layer = ?, abyss_max_layer = ? WHERE uid = ?').bind(newLayer, newMax, uid).run()
+
+      // 全服播报（每5层或首通）
+      if (layer % 5 === 0 || !existing) {
+        const playerName = await db.prepare('SELECT name FROM players WHERE uid = ?').bind(uid).first<{ name: string }>()
+        if (playerName) {
+          await db.prepare('INSERT INTO world_events (uid, name, event_type, content, realm, created_at) VALUES (?, ?, ?, ?, ?, ?)').bind(
+            uid, playerName.name, 'abyss',
+            `🗼 ${playerName.name} 通关镇妖塔第${layer}层！`,
+            '', now
+          ).run()
+        }
+      }
 
       // 首通奖励
       let firstReward = null
