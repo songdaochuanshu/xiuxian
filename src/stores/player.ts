@@ -254,21 +254,20 @@ export const usePlayerStore = defineStore('player', () => {
 
   // 清理背包里的脏数据（成就/统计混入）
   function cleanItems() {
+    let changed = false
     for (const key of Object.keys(items.value)) {
       if (key.startsWith('ach_') || key === 'explore_count') {
-        // 迁移到正确位置
         if (key.startsWith('ach_')) {
           achievements.value[key.replace('ach_', '')] = true
         } else {
           stats.value[key] = items.value[key]
         }
         delete items.value[key]
+        changed = true
       }
     }
+    return changed
   }
-
-  // 初始化时清理
-  cleanItems()
 
   function isAchievementUnlocked(id: string) {
     return achievements.value[id] === true
@@ -290,5 +289,9 @@ export const usePlayerStore = defineStore('player', () => {
     achievements, stats, isAchievementUnlocked, unlockAchievement, incrementStat,
   }
 }, {
-  persist: true,
+  persist: {
+    afterRestore: () => {
+      cleanItems()
+    },
+  },
 })
