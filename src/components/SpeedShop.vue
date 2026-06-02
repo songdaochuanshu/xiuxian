@@ -96,7 +96,9 @@ onMounted(async () => {
   try {
     const res = await fetch(`${API_URL}/game/config`)
     const cfg = await res.json()
-    if (cfg.qrcodeUrl) qrcodeUrl.value = cfg.qrcodeUrl
+    // 优先用 base64，其次外链
+    if (cfg.qrcodeBase64) qrcodeUrl.value = cfg.qrcodeBase64
+    else if (cfg.qrcodeUrl) qrcodeUrl.value = cfg.qrcodeUrl
     if (cfg.payTip) payTip.value = cfg.payTip
   } catch {}
 })

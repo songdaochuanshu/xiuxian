@@ -290,6 +290,7 @@ app.get('/game/config', async (c) => {
       gameName: config.gameName || '凡人修仙传',
       announcement: config.announcement || '',
       qrcodeUrl: config.qrcodeUrl || '',
+      qrcodeBase64: config.qrcodeBase64 || '',
       payTip: config.payTip || '微信扫码支付',
     })
   } catch {

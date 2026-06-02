@@ -70,7 +70,23 @@
         <h3>💰 付款码</h3>
         <div class="config-grid">
           <div class="config-item full">
-            <label>收款码图片地址（支持微信/支付宝外链，如 sm.ms、图床等）</label>
+            <label>上传收款码图片（点击下方按钮选择图片）</label>
+            <div class="upload-area" @click="triggerUpload" @dragover.prevent @drop.prevent="handleDrop">
+              <input ref="fileInput" type="file" accept="image/*" style="display:none" @change="handleFileSelect" />
+              <div v-if="uploading" class="upload-loading">上传中...</div>
+              <div v-else-if="config.qrcodeBase64" class="upload-preview">
+                <img :src="config.qrcodeBase64" alt="收款码" class="preview-img" />
+                <div class="upload-hint">点击更换图片</div>
+              </div>
+              <div v-else class="upload-placeholder">
+                <div class="upload-icon">📷</div>
+                <div class="upload-text">点击或拖拽上传收款码</div>
+                <div class="upload-hint">支持 jpg/png/gif，建议不超过 500KB</div>
+              </div>
+            </div>
+          </div>
+          <div class="config-item full">
+            <label>或输入图片外链地址（优先级低于上传）</label>
             <input v-model="config.qrcodeUrl" placeholder="https://xxx.com/qrcode.png" />
           </div>
           <div class="config-item">
@@ -78,8 +94,8 @@
             <input v-model="config.payTip" placeholder="微信扫码支付" />
           </div>
         </div>
-        <div v-if="config.qrcodeUrl" class="qrcode-preview">
-          <div class="preview-label">预览：</div>
+        <div v-if="config.qrcodeUrl && !config.qrcodeBase64" class="qrcode-preview">
+          <div class="preview-label">外链预览：</div>
           <img :src="config.qrcodeUrl" alt="收款码预览" class="preview-img" @error="qrcodeError = true" />
           <div v-if="qrcodeError" class="preview-error">图片加载失败，请检查地址</div>
         </div>
@@ -106,6 +122,7 @@ const config = ref({
   price2xPerm: 9.9,
   announcement: '',
   qrcodeUrl: '',
+  qrcodeBase64: '',
   payTip: '微信扫码支付',
 })
 
@@ -113,6 +130,8 @@ const loading = ref(true)
 const saving = ref(false)
 const saveSuccess = ref(false)
 const qrcodeError = ref(false)
+const uploading = ref(false)
+const fileInput = ref(null)
 
 async function load() {
   loading.value = true
@@ -125,6 +144,38 @@ async function load() {
     console.error('加载失败:', e)
   }
   loading.value = false
+}
+
+function triggerUpload() {
+  fileInput.value?.click()
+}
+
+function handleFileSelect(e) {
+  const file = e.target.files?.[0]
+  if (file) processFile(file)
+}
+
+function handleDrop(e) {
+  const file = e.dataTransfer.files?.[0]
+  if (file && file.type.startsWith('image/')) processFile(file)
+}
+
+function processFile(file) {
+  if (file.size > 500 * 1024) {
+    alert('图片过大，请压缩到 500KB 以内')
+    return
+  }
+  uploading.value = true
+  const reader = new FileReader()
+  reader.onload = () => {
+    config.value.qrcodeBase64 = reader.result
+    uploading.value = false
+  }
+  reader.onerror = () => {
+    alert('读取图片失败')
+    uploading.value = false
+  }
+  reader.readAsDataURL(file)
 }
 
 async function save() {
@@ -233,5 +284,39 @@ onMounted(load)
   color: var(--danger);
   font-size: 12px;
   margin-top: 8px;
+}
+
+.upload-area {
+  border: 2px dashed var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: rgba(255,255,255,0.02);
+}
+.upload-area:hover {
+  border-color: var(--gold-dim);
+  background: rgba(212,168,83,0.05);
+}
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.upload-icon { font-size: 36px; }
+.upload-text { font-size: 14px; color: var(--text); }
+.upload-hint { font-size: 11px; color: var(--text-dim); }
+.upload-loading {
+  color: var(--text-dim);
+  font-size: 13px;
+  padding: 20px;
+}
+.upload-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
 }
 </style>
