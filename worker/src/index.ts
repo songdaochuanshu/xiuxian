@@ -774,6 +774,51 @@ app.post('/admin/config', async (c) => {
   }
 })
 
+// 商店管理
+app.get('/admin/shop', async (c) => {
+  const db = c.env.DB
+  try {
+    const rows = await db.prepare(
+      'SELECT si.id, si.item_id, si.price, si.stock_limit, i.name, i.icon, i.desc, i.type FROM shop_items si JOIN items i ON si.item_id = i.id ORDER BY si.id'
+    ).all()
+    return json(rows.results || [])
+  } catch (err: any) {
+    return json({ error: err.message }, 500)
+  }
+})
+
+app.post('/admin/shop', async (c) => {
+  const db = c.env.DB
+  try {
+    const { item_id, price, stock_limit } = await c.req.json<{ item_id: number; price: number; stock_limit: number }>()
+    if (!item_id || !price) return json({ error: '参数不完整' }, 400)
+    const now = Date.now()
+    await db.prepare('INSERT INTO shop_items (item_id, price, stock_limit) VALUES (?, ?, ?)').bind(item_id, price, stock_limit ?? -1).run()
+    return json({ success: true })
+  } catch (err: any) {
+    return json({ error: err.message }, 500)
+  }
+})
+
+app.delete('/admin/shop', async (c) => {
+  const db = c.env.DB
+  try {
+    const { id } = await c.req.json<{ id: number }>()
+    if (!id) return json({ error: '缺少id' }, 400)
+    await db.prepare('DELETE FROM shop_items WHERE id = ?').bind(id).run()
+    return json({ success: true })
+  } catch (err: any) {
+    return json({ error: err.message }, 500)
+  }
+})
+
+// 物品列表（供商店管理添加商品时选择）
+app.get('/admin/items', async (c) => {
+  const db = c.env.DB
+  const rows = await db.prepare('SELECT * FROM items ORDER BY id').all()
+  return json(rows.results || [])
+})
+
 app.get('/admin/reincarnations', async (c) => {
   const db = c.env.DB
   const rows = await db.prepare('SELECT * FROM reincarnation_log ORDER BY id DESC LIMIT 100').all()
