@@ -1,42 +1,46 @@
 <template>
   <UserProfile />
 
-  <div class="container">
+  <!-- 主内容区 -->
+  <div class="app-container">
     <!-- 标题 -->
     <div class="title">
       <h1>{{ gameName }}</h1>
       <div class="sub">逆 天 改 命 · 证 道 长 生</div>
     </div>
 
-    <!-- 公告 -->
-    <Announcement />
+    <!-- Tab 内容 -->
+    <div class="tab-content">
+      <!-- 🏠 修行 -->
+      <div v-show="activeTab === 'home'">
+        <Announcement />
+        <PlayerInfo />
+        <PixelCharacter />
+        <ActionPanel />
+      </div>
 
-    <!-- 角色信息 -->
-    <PlayerInfo />
+      <!-- 📦 背包 -->
+      <div v-show="activeTab === 'bag'">
+        <ItemBag />
+      </div>
 
-    <!-- 像素小人 -->
-    <PixelCharacter />
+      <!-- 🏪 坊市 -->
+      <div v-show="activeTab === 'shop'">
+        <Shop />
+        <SpeedShop />
+      </div>
 
-    <!-- 操作按钮 -->
-    <ActionPanel />
+      <!-- 🎖️ 成就 -->
+      <div v-show="activeTab === 'ach'">
+        <Achievements ref="achievementsRef" />
+        <DailyCheckIn />
+      </div>
 
-    <!-- 每日签到 -->
-    <DailyCheckIn />
-
-    <!-- 坊市 -->
-    <Shop />
-
-    <!-- 加速商店 -->
-    <SpeedShop />
-
-    <!-- 成就 -->
-    <Achievements ref="achievementsRef" />
-
-    <!-- 背包 -->
-    <ItemBag />
-
-    <!-- 设置 -->
-    <Settings />
+      <!-- ⚙️ 设置 -->
+      <div v-show="activeTab === 'settings'">
+        <Settings />
+      </div>
+    </div>
   </div>
 
   <!-- 浮动日志 -->
@@ -53,10 +57,22 @@
     </div>
   </div>
 
-  <!-- 战斗面板 -->
-  <BattlePanel />
+  <!-- 底部导航栏 -->
+  <div class="bottom-nav">
+    <div
+      v-for="tab in tabs"
+      :key="tab.key"
+      class="nav-item"
+      :class="{ active: activeTab === tab.key }"
+      @click="activeTab = tab.key"
+    >
+      <span class="nav-icon">{{ tab.icon }}</span>
+      <span class="nav-label">{{ tab.label }}</span>
+    </div>
+  </div>
 
-  <!-- 突破动画 -->
+  <!-- 弹窗/覆盖层 -->
+  <BattlePanel />
   <BreakthroughOverlay />
   <Leaderboard />
 </template>
@@ -84,16 +100,23 @@ const player = usePlayerStore()
 const game = useGameStore()
 const gameName = ref('凡人修仙传')
 
+const activeTab = ref('home')
 const logExpanded = ref(false)
 const logBody = ref(null)
 const achievementsRef = ref(null)
 
-// 只显示最近的日志
+const tabs = [
+  { key: 'home', icon: '🏠', label: '修行' },
+  { key: 'bag', icon: '📦', label: '背包' },
+  { key: 'shop', icon: '🏪', label: '坊市' },
+  { key: 'ach', icon: '🎖️', label: '成就' },
+  { key: 'settings', icon: '⚙️', label: '设置' },
+]
+
 const recentLogs = computed(() => {
   return logExpanded.value ? game.logs.slice(0, 50) : game.logs.slice(0, 5)
 })
 
-// 新日志自动滚动
 watch(() => game.logs.length, () => {
   nextTick(() => {
     if (logBody.value && logExpanded.value) {
@@ -149,7 +172,6 @@ function startTick() {
         }
       }
 
-      // 检查成就
       if (game.tickCount % 5 === 0 && achievementsRef.value) {
         const newAch = achievementsRef.value.checkAchievements()
         if (newAch) {
@@ -174,7 +196,6 @@ function startTick() {
 }
 
 onMounted(async () => {
-  // 加载游戏配置
   try {
     const res = await fetch(`${API_URL}/game/config`)
     const cfg = await res.json()
@@ -195,17 +216,27 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.app-container {
+  padding: 12px;
+  padding-bottom: 140px; /* 底部导航 + 日志空间 */
+}
+
+/* Tab 内容切换 */
+.tab-content {
+  min-height: 60vh;
+}
+
 /* 浮动日志 */
 .floating-log {
   position: fixed;
-  bottom: 0;
+  bottom: 56px;
   left: 0;
   right: 0;
   background: linear-gradient(180deg, rgba(18,18,26,0.95), rgba(10,10,15,0.98));
   border-top: 1px solid var(--border);
   z-index: 60;
   transition: max-height 0.3s ease;
-  max-height: 120px;
+  max-height: 100px;
   overflow: hidden;
   backdrop-filter: blur(10px);
 }
@@ -217,12 +248,12 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 14px;
+  padding: 6px 14px;
   border-bottom: 1px solid rgba(42,42,58,0.3);
   cursor: pointer;
 }
 .log-header span:first-child {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--gold);
   letter-spacing: 2px;
   font-family: 'ZCOOL XiaoWei', serif;
@@ -233,7 +264,7 @@ onUnmounted(() => {
 }
 
 .log-body {
-  padding: 6px 14px;
+  padding: 4px 14px;
   max-height: calc(50vh - 40px);
   overflow-y: auto;
   scrollbar-width: thin;
@@ -244,7 +275,7 @@ onUnmounted(() => {
 
 .log-line {
   font-size: 12px;
-  line-height: 1.8;
+  line-height: 1.6;
   padding: 1px 0;
   font-family: 'ZCOOL XiaoWei', serif;
   animation: logFade 0.3s ease;
@@ -263,23 +294,62 @@ onUnmounted(() => {
 .log-info { color: var(--mp); }
 .log-breakthrough { color: #e0a0ff; text-shadow: 0 0 6px rgba(224,160,255,0.3); }
 
-/* 为底部日志留空间 */
-.container {
-  padding-bottom: 90px;
+/* 底部导航栏 */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  z-index: 100;
+  padding: 6px 0;
+  padding-bottom: max(6px, env(safe-area-inset-bottom));
 }
 
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 0;
+  cursor: pointer;
+  transition: color 0.2s;
+  color: var(--text-dim);
+}
+.nav-item.active {
+  color: var(--gold);
+}
+.nav-icon {
+  font-size: 18px;
+}
+.nav-label {
+  font-size: 10px;
+}
+
+/* 桌面端优化 */
 @media (min-width: 768px) {
   .floating-log {
     left: auto;
     right: 12px;
-    bottom: 12px;
+    bottom: 70px;
     width: 320px;
     border-radius: 6px;
     border: 1px solid var(--border);
-    max-height: 100px;
+    max-height: 80px;
   }
   .floating-log.expanded {
     max-height: 40vh;
+  }
+  .bottom-nav {
+    max-width: 480px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 12px 12px 0 0;
+    border: 1px solid var(--border);
+    border-bottom: none;
   }
 }
 </style>
