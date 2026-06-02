@@ -840,6 +840,23 @@ app.delete('/admin/shop', async (c) => {
   }
 })
 
+app.patch('/admin/shop', async (c) => {
+  const db = c.env.DB
+  try {
+    const { id, price, stock_limit } = await c.req.json<{ id: number; price?: number; stock_limit?: number }>()
+    if (!id) return json({ error: '缺少id' }, 400)
+    if (price !== undefined) {
+      await db.prepare('UPDATE shop_items SET price = ? WHERE id = ?').bind(price, id).run()
+    }
+    if (stock_limit !== undefined) {
+      await db.prepare('UPDATE shop_items SET stock_limit = ? WHERE id = ?').bind(stock_limit, id).run()
+    }
+    return json({ success: true })
+  } catch (err: any) {
+    return json({ error: err.message }, 500)
+  }
+})
+
 // 物品列表（供商店管理添加商品时选择）
 app.get('/admin/items', async (c) => {
   const db = c.env.DB
