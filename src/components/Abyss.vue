@@ -135,9 +135,11 @@
 import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { usePlayerStore } from '../stores/player.ts'
 import { useGameStore } from '../stores/game.ts'
+import { useEffectsStore } from '../stores/effects.ts'
 
 const player = usePlayerStore()
 const game = useGameStore()
+const fx = useEffectsStore()
 const API_URL = import.meta.env.VITE_API_URL || 'https://api.xiuxian.website'
 
 // === 基础状态 ===
@@ -1108,6 +1110,7 @@ async function handleBossDeath() {
       showSettlement.value = true
 
       game.addLog(`击败Boss！进入第${data.newLayer}层！`, 'breakthrough')
+      fx.effectAbyssClear(data.newLayer)
       game.updateTasks([{ taskId: 'main_kill_10' }, { taskId: 'main_kill_100' }])
     }
   } catch {

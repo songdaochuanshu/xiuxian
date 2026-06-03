@@ -33,11 +33,13 @@ import { usePlayerStore } from '../stores/player.ts'
 import { useGameStore } from '../stores/game.ts'
 import { useBattleStore } from '../stores/battle.ts'
 import { useLeaderboardStore } from '../stores/leaderboard.ts'
+import { useEffectsStore } from '../stores/effects.ts'
 
 const player = usePlayerStore()
 const game = useGameStore()
 const battle = useBattleStore()
 const lb = useLeaderboardStore()
+const fx = useEffectsStore()
 
 function handleCultivate() {
   const newState = game.toggleCultivate()
@@ -73,6 +75,7 @@ function handleBreakthrough() {
     game.addLog(`突破成功！踏入 ${result.realmName}！`, 'breakthrough')
     game.addLog(`气血: ${player.maxHp} · 灵力: ${player.maxMp} · 攻击: ${player.atk} · 寿元: ${player.lifespan}`, 'success')
     game.addLog(`天地感应，降下 ${result.goldReward} 灵石。`, 'info')
+    fx.effectBreakthroughSuccess(result.realmName)
     game.triggerBreakthrough({ realmName: result.realmName, lifespanGain: result.lifespanGain })
     game.postWorldEvent(player.uid, player.name, 'breakthrough', `${player.name} 突破成功，踏入 ${result.realmName}！`, player.realmName)
     // 突破任务进度
@@ -84,6 +87,7 @@ function handleBreakthrough() {
     if (breakTasks.length) game.updateTasks(breakTasks)
   } else {
     game.addLog(`突破失败！走火入魔，损失 ${result.lostExp} 修为。`, 'battle')
+    fx.effectBreakthroughFail(result.lostExp)
     if (result.regress) {
       game.addLog('道基受损，修为倒退一层！', 'battle')
     }
