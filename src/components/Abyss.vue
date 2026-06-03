@@ -161,6 +161,7 @@ const battleLogEl = ref(null)
 const skillBarEl = ref(null)
 const floatingDamages = ref([])
 let floatId = 0
+let totalDamageDealt = 0
 
 // === 结算 ===
 const showSettlement = ref(false)
@@ -1001,6 +1002,7 @@ async function fightBoss() {
   showSettlement.value = false
   settleRewards.value = []
   battleLog.value = []
+  totalDamageDealt = 0
 
   addLog(`遭遇第${layer.value}层Boss「${boss.value.name}」！`, 'system', '塔')
   addLog(`血${formatNum(boss.value.hp)} 攻${formatNum(boss.value.atk)} 防${formatNum(boss.value.def)}`, 'info', '情')
@@ -1039,6 +1041,7 @@ async function doAttack(skillKey) {
   if (isCrit) dmg = Math.floor(dmg * 2)
 
   bossCurrentHp.value = Math.max(0, bossCurrentHp.value - dmg)
+  totalDamageDealt += dmg
   triggerBossHit()
 
   if (isCrit) addFloatingDamage(`暴击！-${formatNum(dmg)}`, true, skillKey !== 'normal')
@@ -1088,7 +1091,7 @@ async function handleBossDeath() {
     const res = await fetch(`${API_URL}/api/abyss/challenge`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ uid: player.uid, damage: player.atk * 10 }),
+      body: JSON.stringify({ uid: player.uid, damage: totalDamageDealt }),
     })
     const data = await res.json()
 
@@ -1112,6 +1115,12 @@ async function handleBossDeath() {
       game.addLog(`击败Boss！进入第${data.newLayer}层！`, 'breakthrough')
       fx.effectAbyssClear(data.newLayer)
       game.updateTasks([{ taskId: 'main_kill_10' }, { taskId: 'main_kill_100' }])
+    } else {
+      // 服务器判定未击败
+      settleResult.value = 'lose'
+      settleDetail.value = `Boss剩余 ${formatNum(data.remaining || 0)} 血量`
+      showSettlement.value = true
+      bossCurrentHp.value = data.bossHp || boss.value.hp
     }
   } catch {
     addLog('网络错误，结算失败', 'warning', '!')
