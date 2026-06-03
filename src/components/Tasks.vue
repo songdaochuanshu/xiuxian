@@ -58,9 +58,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { usePlayerStore } from '../stores/player.ts'
 import { useGameStore } from '../stores/game.ts'
+import { useEffectsStore } from '../stores/effects.ts'
 
 const player = usePlayerStore()
 const game = useGameStore()
+const fx = useEffectsStore()
 const API_URL = import.meta.env.VITE_API_URL || 'https://api.xiuxian.website'
 
 const tasks = ref([])
@@ -90,7 +92,15 @@ async function loadTasks() {
   try {
     const res = await fetch(`${API_URL}/api/tasks?uid=${player.uid}`)
     const data = await res.json()
-    if (data.tasks) tasks.value = data.tasks
+    if (data.tasks) {
+      // 检测新完成的任务
+      const oldCompleted = new Set(tasks.value.filter(t => t.status === 'completed').map(t => t.id))
+      const newlyCompleted = data.tasks.filter(t => t.status === 'completed' && !oldCompleted.has(t.id))
+      for (const t of newlyCompleted) {
+        fx.effectTaskDone(t.name)
+      }
+      tasks.value = data.tasks
+    }
   } catch {}
   loading.value = false
 }

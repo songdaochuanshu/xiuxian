@@ -1,5 +1,5 @@
 <template>
-  <div class="char-scene">
+  <div class="char-scene" ref="sceneEl">
     <!-- 背景装饰 -->
     <div class="scene-bg">
       <div class="cloud c1">云</div>
@@ -17,14 +17,17 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import { usePlayerStore } from '../stores/player.ts'
 import { useGameStore } from '../stores/game.ts'
 import { useBattleStore } from '../stores/battle.ts'
+import { useEffectsStore } from '../stores/effects.ts'
 
 const player = usePlayerStore()
 const game = useGameStore()
 const battle = useBattleStore()
+const fx = useEffectsStore()
+const sceneEl = ref(null)
 
 const animState = computed(() => {
   if (player.isDead) return 'dead'
@@ -53,6 +56,17 @@ const statusLabel = computed(() => {
     case 'cultivate': return '修炼中'
     default: return '闲逛'
   }
+})
+
+// 修炼飘字
+watch(() => game.tickCount, (val) => {
+  if (!game.cultivating || !sceneEl.value) return
+  if (val % 3 !== 0) return // 每3秒飘一次
+  const rect = sceneEl.value.getBoundingClientRect()
+  const x = rect.left + rect.width / 2 - 30
+  const y = rect.top + rect.height / 2 - 40
+  const gain = player.realm.speed * player.speedMultiplier
+  fx.floatCultivate(x, y, `修为 +${gain}`)
 })
 </script>
 

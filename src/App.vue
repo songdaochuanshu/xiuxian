@@ -116,6 +116,7 @@
   <BattlePanel />
   <BreakthroughOverlay />
   <Leaderboard />
+  <EffectsOverlay />
 </template>
 
 <script setup>
@@ -143,6 +144,7 @@ import Tasks from './components/Tasks.vue'
 import Abyss from './components/Abyss.vue'
 import IdleFarm from './components/IdleFarm.vue'
 import AbyssRank from './components/AbyssRank.vue'
+import EffectsOverlay from './components/EffectsOverlay.vue'
 
 const player = usePlayerStore()
 const game = useGameStore()

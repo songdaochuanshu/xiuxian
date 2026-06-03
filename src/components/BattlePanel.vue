@@ -40,10 +40,12 @@ import { ref, watch, nextTick } from 'vue'
 import { usePlayerStore } from '../stores/player.ts'
 import { useGameStore } from '../stores/game.ts'
 import { useBattleStore } from '../stores/battle.ts'
+import { useEffectsStore } from '../stores/effects.ts'
 
 const player = usePlayerStore()
 const game = useGameStore()
 const battle = useBattleStore()
+const fx = useEffectsStore()
 const battleLogEl = ref(null)
 
 // 自动滚动到底部
@@ -70,12 +72,26 @@ function handleAfterBattle(result) {
 
 function handleAttack() {
   const result = battle.playerAttack()
+  if (result?.dmg) {
+    const el = document.querySelector('.battle-vs-text')
+    if (el) {
+      const r = el.getBoundingClientRect()
+      fx.addFloat(`-${result.dmg}`, r.left + r.width / 2, r.top - 20, { color: '#ff4444', size: 18, bold: true })
+    }
+  }
   handleAfterBattle(result)
 }
 
 function handleSkill() {
   const result = battle.playerSkill()
   if (result?.noMp) return
+  if (result?.dmg) {
+    const el = document.querySelector('.battle-vs-text')
+    if (el) {
+      const r = el.getBoundingClientRect()
+      fx.addFloat(`-${result.dmg}`, r.left + r.width / 2, r.top - 20, { color: '#ffcc00', size: 22, bold: true, glow: 'rgba(255,200,0,0.5)' })
+    }
+  }
   handleAfterBattle(result)
 }
 
@@ -89,6 +105,20 @@ function handleUseItem() {
   }
   const [itemName] = healItems[0]
   const result = battle.playerUseItem(itemName)
+  // 回复飘字
+  if (itemName === '疗伤丹' || itemName === '大还丹') {
+    const el = document.querySelector('.battle-vs-text')
+    if (el) {
+      const r = el.getBoundingClientRect()
+      fx.addFloat('HP +50', r.left - 30, r.top, { color: '#66ff88', size: 14, glow: 'rgba(100,255,136,0.4)' })
+    }
+  } else if (itemName === '聚灵丹' || itemName === '回灵散') {
+    const el = document.querySelector('.battle-vs-text')
+    if (el) {
+      const r = el.getBoundingClientRect()
+      fx.addFloat('MP +30', r.left + r.width + 10, r.top, { color: '#66bbff', size: 14, glow: 'rgba(100,180,255,0.4)' })
+    }
+  }
   handleAfterBattle(result)
 }
 
