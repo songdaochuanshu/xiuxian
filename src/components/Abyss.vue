@@ -68,7 +68,7 @@
           </div>
         </div>
 
-        <div class="skill-bar">
+        <div class="skill-bar" ref="skillBarEl">
           <button class="skill-btn skill-normal" :disabled="animating" @click="doAttack('normal')">
             <span class="skill-icon">斩</span>
             <span class="skill-name">普攻</span>
@@ -156,6 +156,7 @@ const bossHit = ref(false)
 const bossDead = ref(false)
 const battleLog = ref([])
 const battleLogEl = ref(null)
+const skillBarEl = ref(null)
 const floatingDamages = ref([])
 let floatId = 0
 
@@ -1002,6 +1003,11 @@ async function fightBoss() {
   addLog(`遭遇第${layer.value}层Boss「${boss.value.name}」！`, 'system', '塔')
   addLog(`血${formatNum(boss.value.hp)} 攻${formatNum(boss.value.atk)} 防${formatNum(boss.value.def)}`, 'info', '情')
   if (boss.value.immuneControl) addLog('此Boss免疫控制技能！', 'warning', '!')
+
+  // 滚动到技能栏
+  nextTick(() => {
+    if (skillBarEl.value) skillBarEl.value.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  })
 }
 
 const SKILLS = {
