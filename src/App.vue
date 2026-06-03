@@ -160,6 +160,7 @@ const tabs = [
   { key: 'home', icon: '修', label: '修行' },
   { key: 'bag', icon: '囊', label: '背包' },
   { key: 'abyss', icon: '塔', label: '深渊' },
+  { key: 'shop', icon: '市', label: '坊市' },
   { key: 'chat', icon: '言', label: '频道' },
   { key: 'rank', icon: '榜', label: '天榜' },
   { key: 'settings', icon: '⚙', label: '设置' },
@@ -508,6 +509,8 @@ onUnmounted(() => {
   z-index: 100;
   padding: 6px 0;
   padding-bottom: max(6px, env(safe-area-inset-bottom));
+  touch-action: none;
+  overscroll-behavior: none;
 }
 
 .nav-item {
